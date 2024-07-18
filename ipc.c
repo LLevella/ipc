@@ -45,7 +45,7 @@ static int __init ipc_init(void) {
     return major;
   }
 
-  pr_info("I was assigned major number %d.\n", major);
+  pr_info("IPC device was assigned major number %d.\n", major);
 
   cls = class_create(THIS_MODULE, DEVICE_NAME);
   device_create(cls, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
