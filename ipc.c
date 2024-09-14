@@ -72,7 +72,7 @@ static int ipc_open(struct inode *inode, struct file *file) {
   if (atomic_cmpxchg(&already_open, CDEV_NOT_USED, CDEV_EXCLUSIVE_OPEN))
     return -EBUSY;
 
-  sprintf(msg, "Hello open world!\n");
+  sprintf(msg, "IPC device was opened!\n");
   try_module_get(THIS_MODULE);
 
   return SUCCESS;
@@ -127,10 +127,17 @@ static ssize_t ipc_read(struct file *filp,
 }
 
 /* Called when a process writes to dev file: echo "hi" > /dev/hello */
-static ssize_t ipc_write(struct file *filp, const char __user *buff, size_t len,
-                         loff_t *off) {
-  pr_alert("Sorry, this operation is not supported.\n");
-  return -EINVAL;
+static ssize_t ipc_write(struct file *file, const char __user *buffer,
+                         size_t length, loff_t *offset) {
+  int i;
+
+  pr_info("ipc_write(%p,%p,%ld)", file, buffer, length);
+
+  for (i = 0; i < length && i < BUF_LEN; i++)
+    get_user(msg[i], buffer + i);
+
+  /* Again, return the number of input characters used. */
+  return i;
 }
 
 module_init(ipc_init);
