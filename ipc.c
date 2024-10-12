@@ -93,7 +93,7 @@ static int ipc_release(struct inode *inode, struct file *file) {
   Called when a process, which already opened the dev file, attempts to read
   from it.
 */
-static ssize_t ipc_read(struct file *filp,
+static ssize_t ipc_read(struct file *file,
                         char __user *buffer, /* buffer to fill with data */
                         size_t length,       /* length of the buffer     */
                         loff_t *offset) {
@@ -121,7 +121,7 @@ static ssize_t ipc_read(struct file *filp,
   }
 
   *offset += bytes_read;
-
+  pr_info("ipc_read(%p,%p,%ld)", file, buffer, length);
   /* Most read functions return the number of bytes put into the buffer. */
   return bytes_read;
 }
