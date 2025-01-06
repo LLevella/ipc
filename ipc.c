@@ -1,33 +1,18 @@
-#include <linux/cdev.h>
-#include <linux/delay.h>
+
+#include "ipc.h"
+#include "msg.h"
+
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/init.h>
-#include <linux/irq.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/poll.h>
-
-static int ipc_open(struct inode *, struct file *);
-static int ipc_release(struct inode *, struct file *);
-static ssize_t ipc_read(struct file *, char __user *, size_t, loff_t *);
-static ssize_t ipc_write(struct file *, const char __user *, size_t, loff_t *);
-
-#define SUCCESS 0
-#define DEVICE_NAME "ipcdev" /* Dev name as it appears in /proc/devices   */
-#define BUF_LEN 80           /* Max length of the message from the device */
+#include <linux/sched.h>
+#include <linux/types.h>
 
 static int major; /* major number assigned to our device driver */
-
-enum {
-  CDEV_NOT_USED = 0,
-  CDEV_EXCLUSIVE_OPEN = 1,
-};
-
 static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
-
 static char msg[BUF_LEN + 1]; /* The msg the device will give when asked */
-
 static struct class *cls;
 
 static struct file_operations ipc_fops = {
@@ -37,7 +22,11 @@ static struct file_operations ipc_fops = {
     .release = ipc_release,
 };
 
+static struct messages_queque *msg_qs[NPIDS];
+static MSG_HEAD pids[NPIDS];
+
 static int __init ipc_init(void) {
+  int i;
   major = register_chrdev(0, DEVICE_NAME, &ipc_fops);
 
   if (major < 0) {
@@ -52,13 +41,23 @@ static int __init ipc_init(void) {
 
   pr_info("Device created on /dev/%s\n", DEVICE_NAME);
 
+  for (i = 0; i < NPIDS; i++) {
+    pids[i] = -1;
+    msg_qs[i] = NULL;
+  }
+
   return SUCCESS;
 }
 
 static void __exit ipc_exit(void) {
+  int i;
   device_destroy(cls, MKDEV(major, 0));
   class_destroy(cls);
 
+  for (i = 0; i < NPIDS; i++) {
+    pids[i] = -1;
+    erase_msg_qs(msg_qs[i]);
+  }
   /* Unregister the device */
   unregister_chrdev(major, DEVICE_NAME);
 }
@@ -69,10 +68,11 @@ static void __exit ipc_exit(void) {
   Called when a process tries to open the device file
  */
 static int ipc_open(struct inode *inode, struct file *file) {
+  char pid;
   if (atomic_cmpxchg(&already_open, CDEV_NOT_USED, CDEV_EXCLUSIVE_OPEN))
     return -EBUSY;
-
-  sprintf(msg, "IPC device was opened!\n");
+  pid = task_pid_nr(current);
+  pr_info("IPC device was opened by pid %c!\n", pid);
   try_module_get(THIS_MODULE);
 
   return SUCCESS;
@@ -83,6 +83,7 @@ static int ipc_open(struct inode *inode, struct file *file) {
 */
 static int ipc_release(struct inode *inode, struct file *file) {
   /* We're now ready for our next caller */
+  pr_info("IPC device was released!\n");
   atomic_set(&already_open, CDEV_NOT_USED);
   module_put(THIS_MODULE);
 
