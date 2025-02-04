@@ -1,1 +1,11 @@
 /.vscode
+*.cmd
+*.o 
+*.core 
+*.depend 
+*.ko 
+*.mod.c 
+*.tmp_versions 
+*.mod
+Module.*
+modules.*

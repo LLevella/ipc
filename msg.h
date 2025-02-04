@@ -6,28 +6,30 @@
 #define UNINIT_CLN 0x300 // uninit
 
 #define NPIDS 128
-#define MSG_HEAD int
-#define MSG_BODY char
+#define MSG_THEAD int
+#define MSG_TDATA char
 
 struct msg_head {
-  MSG_HEAD msg_id;
-  MSG_HEAD receiver_pid;
-};
+  MSG_THEAD msg_id;
+  MSG_THEAD receiver_pid;
+} __attribute__((packed));
 
 struct message {
   struct msg_head *head;
-  MSG_BODY *body;
+  MSG_TDATA *body;
 };
 
 struct messages_queque {
-  MSG_BODY *data;
+  MSG_TDATA *data;
   struct message *msg;
   struct messages_queque *next;
 };
 
-void erase_msg_qs(struct messages_queque *q);
+void pids_init(void);
+void pids_uninit(void);
+// void erase_msg_qs(struct messages_queque *q);
 
-struct messages_queque *add_msg_qs(struct messages_queque *q, int datalen);
-struct messages_queque *get_msg_qs(struct messages_queque *q);
+// struct messages_queque *add_msg_qs(struct messages_queque *q, int datalen);
+// struct messages_queque *get_msg_qs(struct messages_queque *q);
 
 #endif
