@@ -5,7 +5,7 @@
 #define SEND 0x200       // send message
 #define UNINIT_CLN 0x300 // uninit
 
-#define NPIDS 128
+#define NPIDS 4
 #define MSG_THEAD int
 #define MSG_TDATA char
 
@@ -22,11 +22,15 @@ struct message {
 struct messages_queque {
   MSG_TDATA *data;
   struct message *msg;
+  size_t length;
   struct messages_queque *next;
 };
 
 void pids_init(void);
 void pids_uninit(void);
+int pid_register(int pid);
+void pid_unregister(int pid);
+int pids_full(void);
 // void erase_msg_qs(struct messages_queque *q);
 
 // struct messages_queque *add_msg_qs(struct messages_queque *q, int datalen);

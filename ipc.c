@@ -7,9 +7,13 @@
 #include <linux/irq.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
-static int major; /* major number assigned to our device driver */
-/* Is device open? Used to prevent multiple access to device */
-static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
+#include <linux/sched.h>
+#include <linux/types.h>
+
+static DECLARE_WAIT_QUEUE_HEAD(waitpids);
+static atomic_t pids_full = ATOMIC_INIT(0);
+
+static int major;
 static char msg[BUF_LEN + 1]; /* The msg the device will give when asked */
 static struct class *cls;
 
@@ -21,59 +25,63 @@ static struct file_operations ipc_fops = {
 };
 
 int __init ipc_init(void) {
+  pids_init();
+  pr_info("Pids buffer was initilized");
   major = register_chrdev(0, DEVICE_NAME, &ipc_fops);
-
   if (major < 0) {
     pr_alert("Registering char device failed with %d\n", major);
     return major;
   }
-
   pr_info("I was assigned major number %d.\n", major);
-
   cls = class_create(THIS_MODULE, DEVICE_NAME);
   device_create(cls, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
-
   pr_info("Device created on /dev/%s\n", DEVICE_NAME);
-  pids_init();
   return SUCCESS;
 }
 
 void __exit ipc_exit(void) {
+  pids_uninit();
+  pr_info("Pids buffer was uninitilized");
   device_destroy(cls, MKDEV(major, 0));
   class_destroy(cls);
-
   /* Unregister the device */
   unregister_chrdev(major, DEVICE_NAME);
-  pids_uninit();
 }
 
 /* Methods */
 
 /* Called when a process tries to open the device file, like
- * "sudo cat /dev/chardev"
+ * "sudo cat /dev/ipcdev"
  */
 int ipc_open(struct inode *inode, struct file *file) {
-  static int counter = 0;
+  int pid = task_pid_nr(current);
+  int i, is_sig = 0;
 
-  if (atomic_cmpxchg(&already_open, CDEV_NOT_USED, CDEV_EXCLUSIVE_OPEN))
-    return -EBUSY;
+  if ((file->f_flags & O_NONBLOCK) && pids_full())
+    return -EAGAIN;
 
-  sprintf(msg, "I already told you %d times Hello world!\n", counter++);
   try_module_get(THIS_MODULE);
 
+  while (pids_full()) {
+    wait_event_interruptible(waitpids, !pids_full());
+    for (i = 0; i < _NSIG_WORDS && !is_sig; i++)
+      is_sig = current->pending.signal.sig[i] & ~current->blocked.sig[i];
+    if (is_sig) {
+      module_put(THIS_MODULE);
+      return -EINTR;
+    }
+  }
+
+  pid_register(pid);
   return SUCCESS;
 }
 
 /* Called when a process closes the device file. */
 int ipc_release(struct inode *inode, struct file *file) {
-  /* We're now ready for our next caller */
-  atomic_set(&already_open, CDEV_NOT_USED);
-
-  /* Decrement the usage count, or else once you opened the file, you will
-   * never get rid of the module.
-   */
+  int pid = task_pid_nr(current);
+  pid_unregister(pid);
+  wake_up(&waitpids);
   module_put(THIS_MODULE);
-
   return SUCCESS;
 }
 
@@ -114,10 +122,13 @@ ssize_t ipc_read(struct file *filp,   /* see include/linux/fs.h   */
 }
 
 /* Called when a process writes to dev file: echo "hi" > /dev/hello */
-ssize_t ipc_write(struct file *filp, const char __user *buff, size_t len,
-                  loff_t *off) {
-  pr_alert("Sorry, this operation is not supported.\n");
-  return -EINVAL;
+ssize_t device_write(struct file *file, const char __user *buffer,
+                     size_t length, loff_t *offset) {
+  int i;
+  pr_info("device_write(%p,%p,%ld)", file, buffer, length);
+  for (i = 0; i < length && i < BUF_LEN; i++)
+    get_user(msg[i], buffer + i);
+  return i;
 }
 
 module_init(ipc_init);
