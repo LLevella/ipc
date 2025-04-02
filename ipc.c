@@ -1,20 +1,16 @@
 #include "ipc.h"
 #include "msg.h"
+
 #include <linux/cdev.h>
 #include <linux/device.h>
-#include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/irq.h>
-#include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/sched.h>
-#include <linux/types.h>
 
 static DECLARE_WAIT_QUEUE_HEAD(waitpids);
-static atomic_t pids_full = ATOMIC_INIT(0);
 
 static int major;
-static char msg[BUF_LEN + 1]; /* The msg the device will give when asked */
 static struct class *cls;
 
 static struct file_operations ipc_fops = {
@@ -44,7 +40,6 @@ void __exit ipc_exit(void) {
   pr_info("Pids buffer was uninitilized");
   device_destroy(cls, MKDEV(major, 0));
   class_destroy(cls);
-  /* Unregister the device */
   unregister_chrdev(major, DEVICE_NAME);
 }
 
@@ -53,11 +48,11 @@ void __exit ipc_exit(void) {
 /* Called when a process tries to open the device file, like
  * "sudo cat /dev/ipcdev"
  */
-int ipc_open(struct inode *inode, struct file *file) {
+int ipc_open(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
   int i, is_sig = 0;
 
-  if ((file->f_flags & O_NONBLOCK) && pids_full())
+  if ((filp->f_flags & O_NONBLOCK) && pids_full())
     return -EAGAIN;
 
   try_module_get(THIS_MODULE);
@@ -73,13 +68,16 @@ int ipc_open(struct inode *inode, struct file *file) {
   }
 
   pid_register(pid);
+  filp->private_data = get_pid_msg(pid);
+
   return SUCCESS;
 }
 
 /* Called when a process closes the device file. */
-int ipc_release(struct inode *inode, struct file *file) {
+int ipc_release(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
   pid_unregister(pid);
+  filp->private_data = NULL;
   wake_up(&waitpids);
   module_put(THIS_MODULE);
   return SUCCESS;
@@ -88,47 +86,57 @@ int ipc_release(struct inode *inode, struct file *file) {
 /* Called when a process, which already opened the dev file, attempts to
  * read from it.
  */
-ssize_t ipc_read(struct file *filp,   /* see include/linux/fs.h   */
-                 char __user *buffer, /* buffer to fill with data */
-                 size_t length,       /* length of the buffer     */
+ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
                  loff_t *offset) {
-  /* Number of bytes actually written to the buffer */
-  int bytes_read = 0;
-  const char *msg_ptr = msg;
 
-  if (!*(msg_ptr + *offset)) { /* we are at the end of message */
-    *offset = 0;               /* reset the offset */
-    return 0;                  /* signify end of file */
+  struct message *msg;
+  int nbytes = 0;
+  struct pid_msg *pidp = filp->private_data;
+
+  if (mutex_lock_interruptible(&pidp->lock))
+    return -ERESTARTSYS;
+
+  msg = get_tail_msg(pidp->head);
+  nbytes = ((length < msg->length) ? length : msg->length);
+
+  if ((msg == NULL) || copy_to_user(buffer, msg->data, nbytes)) {
+    mutex_unlock(&pidp->lock);
+    return -EFAULT;
   }
 
-  msg_ptr += *offset;
+  *offset += nbytes;
+  clean_tail_msg(&(pidp->head));
 
-  /* Actually put the data into the buffer */
-  while (length && *msg_ptr) {
-    /* The buffer is in the user data segment, not the kernel
-     * segment so "*" assignment won't work.  We have to use
-     * put_user which copies data from the kernel data segment to
-     * the user data segment.
-     */
-    put_user(*(msg_ptr++), buffer++);
-    length--;
-    bytes_read++;
-  }
-
-  *offset += bytes_read;
-
-  /* Most read functions return the number of bytes put into the buffer. */
-  return bytes_read;
+  mutex_unlock(&pidp->lock);
+  return nbytes;
 }
 
-/* Called when a process writes to dev file: echo "hi" > /dev/hello */
-ssize_t device_write(struct file *file, const char __user *buffer,
-                     size_t length, loff_t *offset) {
-  int i;
-  pr_info("device_write(%p,%p,%ld)", file, buffer, length);
-  for (i = 0; i < length && i < BUF_LEN; i++)
-    get_user(msg[i], buffer + i);
-  return i;
+ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
+                  loff_t *offset) {
+  struct message *msg;
+  int nbytes = 0;
+  int pid = task_pid_nr(current);
+  struct pid_msg *pidp = filp->private_data;
+
+  if (msg_alloc(&msg, length) < 0)
+    return -ENOMEM;
+
+  if (mutex_lock_interruptible(&pidp->lock))
+    return -ERESTARTSYS;
+
+  if (copy_from_user(msg->data, buffer, length)) {
+    mutex_unlock(&pidp->lock);
+    return -EFAULT;
+  }
+
+  nbytes = length;
+  *offset += nbytes;
+  mutex_unlock(&pidp->lock);
+
+  if (!msg_matching(msg, pid))
+    return -EFAULT;
+
+  return nbytes;
 }
 
 module_init(ipc_init);
