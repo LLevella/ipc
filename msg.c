@@ -3,9 +3,11 @@
 #include <linux/slab.h>
 
 static MSG_THEAD pids[NPIDS];
-static struct pid_msg *pids_msg_list[NPIDS];
-static DEFINE_MUTEX(pidslock);
+static DEFINE_MUTEX(pidslock); // для блокирования доступа к массиву pids
 
+static struct pid_msg *pids_msg_list[NPIDS]; // список структур для процессов
+
+// очищает цепочку сообщения начиная с q и до хвоста
 static void msg_q_free(struct messages_list *q) {
   struct messages_list *q_next;
 
@@ -20,16 +22,16 @@ static void msg_q_free(struct messages_list *q) {
 
 int msg_alloc(struct message **msg, size_t length) {
   if (length < sizeof(struct msg_head))
-    return -1;
+    return ERROR;
 
   *msg = (struct message *)kmalloc(sizeof(struct message), GFP_KERNEL);
   if (!(*msg))
-    return -1;
+    return ERROR;
 
   (*msg)->data =
       (MSG_TDATA *)kmalloc(sizeof(MSG_TDATA) * (length + 1), GFP_KERNEL);
   if (!(*msg)->data)
-    return -1;
+    return ERROR;
   (*msg)->data[length] = '\0';
   (*msg)->head = (struct msg_head *)(*msg)->data;
 
@@ -38,7 +40,7 @@ int msg_alloc(struct message **msg, size_t length) {
     (*msg)->body = (*msg)->data + sizeof(struct msg_head);
 
   (*msg)->length = length;
-  return 0;
+  return SUCCESS;
 }
 
 void pids_init(void) {
@@ -72,7 +74,7 @@ int pids_full(void) {
   for (i = 0; i < NPIDS; i++)
     if (pids[i] < 0) {
       mutex_unlock(&pidslock);
-      return 0;
+      return SUCCESS;
     }
 
   mutex_unlock(&pidslock);
@@ -91,7 +93,7 @@ int pid_nfind(int pid) {
 
   if (i == NPIDS) {
     mutex_unlock(&pidslock);
-    return -1;
+    return ERROR;
   }
 
   mutex_unlock(&pidslock);
@@ -113,14 +115,14 @@ int pid_register(int pid) {
 
   if (i == NPIDS) {
     mutex_unlock(&pidslock);
-    return -1;
+    return ERROR;
   }
 
   pids[i] = pid;
   pids_msg_list[i] =
       (struct pid_msg *)kmalloc(sizeof(struct pid_msg), GFP_KERNEL);
   if (!pids_msg_list[i])
-    return -1;
+    return ERROR;
   mutex_init(&(pids_msg_list[i]->lock));
 
   mutex_unlock(&pidslock);
@@ -169,13 +171,13 @@ int clean_tail_msg(struct messages_list **head) {
   struct messages_list *q_curr, *q_next;
 
   if (q_prev == NULL)
-    return 0;
+    return SUCCESS;
 
   q_curr = q_prev->next;
   if (q_curr == NULL) {
     msg_q_free(q_prev);
     *head = NULL;
-    return 0;
+    return SUCCESS;
   }
 
   q_next = q_curr->next;
@@ -188,9 +190,10 @@ int clean_tail_msg(struct messages_list **head) {
   msg_q_free(q_curr);
   q_prev->next = NULL;
 
-  return 0;
+  return SUCCESS;
 }
 
+// добавляет сообщение в хвост списка
 static int add_msg(MSG_THEAD msg_id, void *data, size_t length, int sender_pid,
                    int receiver_pid) {
   struct pid_msg *cur_pid_msg = get_pid_msg(receiver_pid);
@@ -202,18 +205,18 @@ static int add_msg(MSG_THEAD msg_id, void *data, size_t length, int sender_pid,
       (struct messages_list *)kmalloc(sizeof(struct messages_list), GFP_KERNEL);
   if (!cur_pid_msg->head) {
     mutex_unlock(&cur_pid_msg->lock);
-    return -1;
+    return ERROR;
   }
   cur_pid_msg->head->next = head;
   head = cur_pid_msg->head;
   mutex_unlock(&cur_pid_msg->lock);
   if (msg_alloc(&(cur_pid_msg->head->msg), length) < 0)
-    return -1;
+    return ERROR;
   memcpy(msg->body, data, length - sizeof(struct msg_head));
   msg->head->pid = sender_pid;
   msg->head->msg_id = msg_id;
   // оправить сигнал процессу на считывание
-  return 0;
+  return SUCCESS;
 }
 
 static int init_msg(int pid) {

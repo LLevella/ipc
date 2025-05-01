@@ -20,6 +20,11 @@ static struct file_operations ipc_fops = {
     .release = ipc_release,
 };
 
+/*
+ Инициализация, создание устройства, регистрация, инициализация списка для
+ процессов, которые открыли это устройство (будем считать открытие
+ регистрацией процесса)
+*/
 int __init ipc_init(void) {
   pids_init();
   pr_info("Pids buffer was initilized");
@@ -35,6 +40,10 @@ int __init ipc_init(void) {
   return SUCCESS;
 }
 
+/*
+ Завершение, закрытие устройства, очистка списка зарегистрированных
+ процессов)
+*/
 void __exit ipc_exit(void) {
   pids_uninit();
   pr_info("Pids buffer was uninitilized");
@@ -43,11 +52,11 @@ void __exit ipc_exit(void) {
   unregister_chrdev(major, DEVICE_NAME);
 }
 
-/* Methods */
-
-/* Called when a process tries to open the device file, like
- * "sudo cat /dev/ipcdev"
- */
+/*
+  Открытие файла устройства. При открытии происходит регистрация процесса.
+  Одновременно с драйвером может работать не более NPID процессов. Если NPID+1
+  поцесс открывает файл, он засыпает пока не освободится место.
+*/
 int ipc_open(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
   int i, is_sig = 0;
@@ -73,7 +82,10 @@ int ipc_open(struct inode *inode, struct file *filp) {
   return SUCCESS;
 }
 
-/* Called when a process closes the device file. */
+/*
+  Закрытие файла устройства. При закрытии происходит отмена решистрации
+  процесса. Пробудаются другие процессы, которые ожидают регистрации
+*/
 int ipc_release(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
   pid_unregister(pid);
@@ -83,8 +95,10 @@ int ipc_release(struct inode *inode, struct file *filp) {
   return SUCCESS;
 }
 
-/* Called when a process, which already opened the dev file, attempts to
- * read from it.
+/*
+  Чтение из файла устройства, дескриптор в приватных данных содержит описание
+  буфера для сообщений, отправленных данному процессу.
+  Чтение по сообщениям, начиная с самых ранних
  */
 ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
                  loff_t *offset) {
@@ -104,12 +118,17 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
     return -EFAULT;
   }
 
-  *offset += nbytes;
+  //*offset += nbytes;
   clean_tail_msg(&(pidp->head));
 
   mutex_unlock(&pidp->lock);
   return nbytes;
 }
+
+/*
+  Запись в файл устройства. Получаем сообщение записанное процессом,
+  сортируем его.
+ */
 
 ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
                   loff_t *offset) {
@@ -130,7 +149,7 @@ ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
   }
 
   nbytes = length;
-  *offset += nbytes;
+  //*offset += nbytes;
   mutex_unlock(&pidp->lock);
 
   if (!msg_matching(msg, pid))
