@@ -5,7 +5,7 @@
 static MSG_THEAD pids[NPIDS];
 static DEFINE_MUTEX(pidslock); // для блокирования доступа к массиву pids
 
-static struct pid_msg *pids_msg_list[NPIDS]; // список структур для процессов
+static struct pid_msg pids_msg_list[NPIDS]; // список структур для процессов
 
 // очищает цепочку сообщения начиная с q и до хвоста
 static void msg_q_free(struct messages_list *q) {
@@ -13,9 +13,12 @@ static void msg_q_free(struct messages_list *q) {
 
   while (q != NULL) {
     q_next = q->next;
-    kfree(q->msg->data);
-    kfree(q->msg);
-    kfree(q);
+    if (q->msg->data)
+      kfree(q->msg->data);
+    if (q->msg)
+      kfree(q->msg);
+    if (q)
+      kfree(q);
     q = q_next;
   }
 }
@@ -47,8 +50,8 @@ void pids_init(void) {
   int i = 0;
 
   for (i = 0; i < NPIDS; i++) {
-    pids[i] = 0;
-    pids_msg_list[i] = NULL;
+    pids[i] = -1;
+    pids_msg_list[i].head = NULL;
   }
 }
 
@@ -59,27 +62,26 @@ void pids_uninit(void) {
 
   for (i = 0; i < NPIDS; i++) {
     pids[i] = -1;
-    msg_q_free(pids_msg_list[i]->head);
-    kfree(pids_msg_list[i]);
-    pids_msg_list[i] = NULL;
+    msg_q_free(pids_msg_list[i].head);
+    pids_msg_list[i].head = NULL;
   }
 
   mutex_unlock(&pidslock);
 }
 
 int pids_full(void) {
-  int i = 0;
+  int i;
+  int status = FULL;
   mutex_lock(&pidslock);
 
   for (i = 0; i < NPIDS; i++)
     if (pids[i] < 0) {
-      mutex_unlock(&pidslock);
-      return SUCCESS;
+      status = SUCCESS;
+      break;
     }
 
   mutex_unlock(&pidslock);
-
-  return 1;
+  return status;
 }
 
 int pid_nfind(int pid) {
@@ -102,11 +104,9 @@ int pid_nfind(int pid) {
 }
 
 int pid_register(int pid) {
-  int i;
-
-  i = pid_nfind(pid);
+  int i = pid_nfind(pid);
   if (i > 0)
-    return i;
+    return SUCCESS;
 
   mutex_lock(&pidslock);
   for (i = 0; i < NPIDS; i++)
@@ -119,15 +119,11 @@ int pid_register(int pid) {
   }
 
   pids[i] = pid;
-  pids_msg_list[i] =
-      (struct pid_msg *)kmalloc(sizeof(struct pid_msg), GFP_KERNEL);
-  if (!pids_msg_list[i])
-    return ERROR;
-  mutex_init(&(pids_msg_list[i]->lock));
+  mutex_init(&(pids_msg_list[i].lock));
 
   mutex_unlock(&pidslock);
-
-  return i;
+  printk("pid_register %d", i);
+  return SUCCESS;
 }
 
 void pid_unregister(int pid) {
@@ -141,19 +137,18 @@ void pid_unregister(int pid) {
 
   if (i < NPIDS) {
     pids[i] = -1;
-    msg_q_free(pids_msg_list[i]->head);
-    kfree(pids_msg_list[i]);
-    pids_msg_list[i] = NULL;
+    msg_q_free(pids_msg_list[i].head);
+    pids_msg_list[i].head = NULL;
   }
 
   mutex_unlock(&pidslock);
 }
 
-struct pid_msg *get_pid_msg(int pid) {
+struct pid_msg *get_pid_msg_list(int pid) {
   int ipid = pid_nfind(pid);
   if (ipid < 0)
     return NULL;
-  return pids_msg_list[ipid];
+  return &(pids_msg_list[ipid]);
 }
 
 struct message *get_tail_msg(struct messages_list *head) {
@@ -196,7 +191,7 @@ int clean_tail_msg(struct messages_list **head) {
 // добавляет сообщение в хвост списка
 static int add_msg(MSG_THEAD msg_id, void *data, size_t length, int sender_pid,
                    int receiver_pid) {
-  struct pid_msg *cur_pid_msg = get_pid_msg(receiver_pid);
+  struct pid_msg *cur_pid_msg = get_pid_msg_list(receiver_pid);
   struct messages_list *head = NULL;
   struct message *msg;
   mutex_lock(&cur_pid_msg->lock);

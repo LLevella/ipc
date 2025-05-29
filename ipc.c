@@ -8,8 +8,6 @@
 #include <linux/module.h>
 #include <linux/sched.h>
 
-static DECLARE_WAIT_QUEUE_HEAD(waitpids);
-
 static int major;
 static struct class *cls;
 
@@ -33,7 +31,7 @@ int __init ipc_init(void) {
     pr_alert("Registering char device failed with %d\n", major);
     return major;
   }
-  pr_info("I was assigned major number %d.\n", major);
+  pr_info("%s was assigned major number %d.\n", DEVICE_NAME, major);
   cls = class_create(THIS_MODULE, DEVICE_NAME);
   device_create(cls, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
   pr_info("Device created on /dev/%s\n", DEVICE_NAME);
@@ -50,6 +48,7 @@ void __exit ipc_exit(void) {
   device_destroy(cls, MKDEV(major, 0));
   class_destroy(cls);
   unregister_chrdev(major, DEVICE_NAME);
+  pr_info("Device was removed from /dev/%s\n", DEVICE_NAME);
 }
 
 /*
@@ -59,26 +58,27 @@ void __exit ipc_exit(void) {
 */
 int ipc_open(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
-  int i, is_sig = 0;
+  struct pid_msg *pidp;
+  int err;
 
-  if ((filp->f_flags & O_NONBLOCK) && pids_full())
+  pr_info("Device was opened by PID %d", pid);
+
+  err = pids_full();
+  if (err)
     return -EAGAIN;
 
+  err = pid_register(pid);
+  if (err)
+    return -EINVAL;
+  pr_info("PID was registered");
+
+  pidp = get_pid_msg_list(pid);
+  if (!pidp)
+    return -EINVAL;
+
+  filp->private_data = pidp;
+  pr_info("PID msg list now in private data of file ");
   try_module_get(THIS_MODULE);
-
-  while (pids_full()) {
-    wait_event_interruptible(waitpids, !pids_full());
-    for (i = 0; i < _NSIG_WORDS && !is_sig; i++)
-      is_sig = current->pending.signal.sig[i] & ~current->blocked.sig[i];
-    if (is_sig) {
-      module_put(THIS_MODULE);
-      return -EINTR;
-    }
-  }
-
-  pid_register(pid);
-  filp->private_data = get_pid_msg(pid);
-
   return SUCCESS;
 }
 
@@ -88,10 +88,11 @@ int ipc_open(struct inode *inode, struct file *filp) {
 */
 int ipc_release(struct inode *inode, struct file *filp) {
   int pid = task_pid_nr(current);
+  pr_info("Device was closed by PID %d", pid);
   pid_unregister(pid);
-  filp->private_data = NULL;
-  wake_up(&waitpids);
+  pr_info("PID was unregistered");
   module_put(THIS_MODULE);
+  pr_info("PID %d closed device file", pid);
   return SUCCESS;
 }
 
@@ -111,14 +112,18 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
     return -ERESTARTSYS;
 
   msg = get_tail_msg(pidp->head);
+  if (!msg) {
+    mutex_unlock(&pidp->lock);
+    return nbytes;
+  }
   nbytes = ((length < msg->length) ? length : msg->length);
 
-  if ((msg == NULL) || copy_to_user(buffer, msg->data, nbytes)) {
+  if (copy_to_user(buffer, msg->data, nbytes)) {
     mutex_unlock(&pidp->lock);
     return -EFAULT;
   }
 
-  //*offset += nbytes;
+  // //*offset += nbytes;
   clean_tail_msg(&(pidp->head));
 
   mutex_unlock(&pidp->lock);

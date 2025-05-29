@@ -24,8 +24,9 @@
 
 // статус завершения процедур
 enum {
-  SUCCESS = 0,
   ERROR = -1,
+  SUCCESS = 0,
+  FULL = 1,
 };
 
 struct msg_head {
@@ -62,8 +63,8 @@ int pids_full(void);
 int pid_register(int pid);
 // Отмена регистрации процесса
 void pid_unregister(int pid);
-// Получение структуры буфера со списком сообщений для конкретного процесса
-struct pid_msg *get_pid_msg(int pid);
+// Получение структуры  со списком сообщений для конкретного процесса
+struct pid_msg *get_pid_msg_list(int pid);
 // отдает сообщение из хвоста списка (самое старое)
 struct message *get_tail_msg(struct messages_list *head);
 // очищает сообщение из хвоста списка
