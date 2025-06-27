@@ -1,9 +1,8 @@
 import os
+import struct
 path = "/dev/ipcdev"
 fd = os.open(path, os.O_NONBLOCK|os.O_RDWR)
-s = "100"
-line = str.encode(s)
-numBytes = os.write(fd, line)
+numBytes = os.write(fd, struct.pack("ii", 10, 0))
 pid = os.getpid()
-print("Number of bytes written:", numBytes, "pid", pid)
+print("Number of bytes written:", numBytes, "calsize", struct.calcsize('ii') , "pid", pid)
 os.close(fd)

@@ -6,17 +6,17 @@
 #include <linux/init.h>
 #include <linux/irq.h>
 #include <linux/module.h>
+#include <linux/poll.h>
 #include <linux/sched.h>
 
 static int major;
 static struct class *cls;
 
-static struct file_operations ipc_fops = {
-    .read = ipc_read,
-    .write = ipc_write,
-    .open = ipc_open,
-    .release = ipc_release,
-};
+static struct file_operations ipc_fops = {.read = ipc_read,
+                                          .write = ipc_write,
+                                          .open = ipc_open,
+                                          .release = ipc_release,
+                                          .poll = ipc_poll};
 
 /*
  Инициализация, создание устройства, регистрация, инициализация списка для
@@ -107,26 +107,28 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
   struct message *msg;
   int nbytes = 0;
   struct pid_msg *pidp = filp->private_data;
-
+  pr_info("PID pointer write device file");
   if (mutex_lock_interruptible(&pidp->lock))
     return -ERESTARTSYS;
-
+  pr_info("Mutex locked");
   msg = get_tail_msg(pidp->head);
   if (!msg) {
+    pr_info("Nothing for reading");
     mutex_unlock(&pidp->lock);
     return nbytes;
   }
+  pr_info("Message was founded");
   nbytes = ((length < msg->length) ? length : msg->length);
-
   if (copy_to_user(buffer, msg->data, nbytes)) {
     mutex_unlock(&pidp->lock);
     return -EFAULT;
   }
-
+  pr_info("%d bytes was readed", nbytes);
   // //*offset += nbytes;
   clean_tail_msg(&(pidp->head));
-
+  pr_info("Message was removed");
   mutex_unlock(&pidp->lock);
+  pr_info("Mutex unlocked");
   return nbytes;
 }
 
@@ -138,29 +140,55 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
 ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
                   loff_t *offset) {
   struct message *msg;
-  int nbytes = 0;
+  int nbytes = length;
   int pid = task_pid_nr(current);
+  pr_info("Write function was called by PID %d\n", pid);
   struct pid_msg *pidp = filp->private_data;
-
+  pr_info("PID pointer write device file");
   if (msg_alloc(&msg, length) < 0)
     return -ENOMEM;
-
+  pr_info("Message allocated");
   if (mutex_lock_interruptible(&pidp->lock))
     return -ERESTARTSYS;
-
+  pr_info("Mutex locked");
   if (copy_from_user(msg->data, buffer, length)) {
     mutex_unlock(&pidp->lock);
     return -EFAULT;
   }
-
   nbytes = length;
+  pr_info("Data was copied from user space to msg buffer, %d bytes", nbytes);
   //*offset += nbytes;
   mutex_unlock(&pidp->lock);
-
+  pr_info("Mutex unlocked");
   if (!msg_matching(msg, pid))
-    return -EFAULT;
-
+    return -ERROR;
+  pr_info("MSG was filtered");
   return nbytes;
+}
+
+/*
+  Поллинг - функция возвращает POLLIN | POLLRDNORM, если в буфере, вызвавшего
+  процесса, есть сообщения, которые нужно прочитать.
+ */
+__poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl) {
+  __poll_t mask = 0;
+  int pid = task_pid_nr(current);
+  pr_info("Poll function was called by PID %d\n", pid);
+  struct pid_msg *pidp = filp->private_data;
+  pr_info("PID pointer write device file");
+  if (pid_nfind(pid) < 0)
+    return mask;
+  pr_info("PID was not registered");
+  mutex_lock(&pidp->lock);
+  pr_info("Mutex locked");
+  if (pidp->head != NULL) {
+    // there is data in pids buffer
+    mask = POLLIN | POLLRDNORM;
+    pr_info("PID %d buffer has data for reading", pid);
+  }
+  mutex_unlock(&pidp->lock);
+  pr_info("Mutex unlocked");
+  return mask;
 }
 
 module_init(ipc_init);

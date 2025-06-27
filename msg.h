@@ -59,6 +59,8 @@ void pids_init(void);
 void pids_uninit(void);
 // Проверка,етсь ли место в списке процессов
 int pids_full(void);
+// поиск pid в списке зарегистрированных
+int pid_nfind(int pid);
 // Регистрация процесса
 int pid_register(int pid);
 // Отмена регистрации процесса

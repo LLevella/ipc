@@ -8,7 +8,7 @@ int ipc_open(struct inode *, struct file *);
 int ipc_release(struct inode *, struct file *);
 ssize_t ipc_read(struct file *, char __user *, size_t, loff_t *);
 ssize_t ipc_write(struct file *, const char __user *, size_t, loff_t *);
-
+__poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl);
 int ipc_init(void);
 void ipc_exit(void);
 
