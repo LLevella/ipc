@@ -107,7 +107,7 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
   struct message *msg;
   int nbytes = 0;
   struct pid_msg *pidp = filp->private_data;
-  pr_info("PID pointer write device file");
+  pr_info("PID pointer read device file");
   if (mutex_lock_interruptible(&pidp->lock))
     return -ERESTARTSYS;
   pr_info("Mutex locked");
@@ -160,8 +160,8 @@ ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
   //*offset += nbytes;
   mutex_unlock(&pidp->lock);
   pr_info("Mutex unlocked");
-  if (!msg_matching(msg, pid))
-    return -ERROR;
+  if (msg_matching(msg, pid))
+    return 0;
   pr_info("MSG was filtered");
   return nbytes;
 }
@@ -175,10 +175,11 @@ __poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl) {
   int pid = task_pid_nr(current);
   pr_info("Poll function was called by PID %d\n", pid);
   struct pid_msg *pidp = filp->private_data;
-  pr_info("PID pointer write device file");
-  if (pid_nfind(pid) < 0)
+  pr_info("PID pointer poll device file");
+  int ipid = pid_nfind(pid);
+  pr_info("iPID pointer poll device file %d", ipid);
+  if (ipid < 0)
     return mask;
-  pr_info("PID was not registered");
   mutex_lock(&pidp->lock);
   pr_info("Mutex locked");
   if (pidp->head != NULL) {

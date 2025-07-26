@@ -97,9 +97,7 @@ int pid_nfind(int pid) {
     mutex_unlock(&pidslock);
     return ERROR;
   }
-
   mutex_unlock(&pidslock);
-
   return i;
 }
 
@@ -151,6 +149,17 @@ struct pid_msg *get_pid_msg_list(int pid) {
   return &(pids_msg_list[ipid]);
 }
 
+static void print_msg_data(struct message *msg) {
+  int i;
+  pr_info("print_msg_data: msg->head {%d, %d}", msg->head->msg_id,
+          msg->head->pid);
+  pr_info("print_msg_data: msg->body:");
+  for (i = 0; i < msg->length - sizeof(struct msg_head); i++)
+    pr_info("%x  ", msg->body[i]);
+  pr_info("print_msg_data: msg->data:");
+  for (i = 0; i < msg->length; i++)
+    pr_info("%x  ", msg->data[i]);
+}
 struct message *get_tail_msg(struct messages_list *head) {
   struct messages_list *q_curr = head;
   if (q_curr == NULL)
@@ -158,6 +167,9 @@ struct message *get_tail_msg(struct messages_list *head) {
   while (q_curr->next != NULL) {
     q_curr = q_curr->next;
   }
+  pr_info("get_tail_msg print msg");
+  if (q_curr->msg)
+    print_msg_data(q_curr->msg);
   return q_curr->msg;
 }
 
@@ -189,11 +201,13 @@ int clean_tail_msg(struct messages_list **head) {
 }
 
 // добавляет сообщение в хвост списка
-static int add_msg(MSG_THEAD msg_id, void *data, size_t length, int sender_pid,
-                   int receiver_pid) {
+static int add_msg(MSG_THEAD msg_id, void *data, size_t length,
+                   MSG_THEAD sender_pid, MSG_THEAD receiver_pid,
+                   MSG_THEAD response_msg_id) {
   struct pid_msg *cur_pid_msg = get_pid_msg_list(receiver_pid);
   struct messages_list *head = NULL;
   struct message *msg;
+  struct msg_head h;
   mutex_lock(&cur_pid_msg->lock);
   head = cur_pid_msg->head;
   cur_pid_msg->head =
@@ -207,28 +221,37 @@ static int add_msg(MSG_THEAD msg_id, void *data, size_t length, int sender_pid,
   mutex_unlock(&cur_pid_msg->lock);
   if (msg_alloc(&(cur_pid_msg->head->msg), length) < 0)
     return ERROR;
+  msg = cur_pid_msg->head->msg;
   memcpy(msg->body, data, length - sizeof(struct msg_head));
   msg->head->pid = sender_pid;
-  msg->head->msg_id = msg_id;
-  // оправить сигнал процессу на считывание
+  msg->head->msg_id = response_msg_id;
+
+  pr_info("add_msg print msg");
+  if (cur_pid_msg->head->msg)
+    print_msg_data(cur_pid_msg->head->msg);
   return SUCCESS;
 }
 
-static int init_msg(int pid) {
+static int init_msg(MSG_THEAD pid) {
   return add_msg(INIT_STATUS, (void *)pids,
-                 sizeof(struct msg_head) + NPIDS * sizeof(MSG_THEAD), 0, pid);
+                 sizeof(struct msg_head) + NPIDS * sizeof(MSG_THEAD), 0, pid,
+                 INIT_STATUS);
 }
 
-static int send_msg(struct message *msg, int sender_pid, int receiver_pid) {
-  return add_msg(SEND, (void *)msg->body, msg->length, sender_pid,
-                 receiver_pid);
+static int send_msg(struct message *msg, MSG_THEAD sender_pid,
+                    MSG_THEAD receiver_pid) {
+  return add_msg(SEND, (void *)msg->body, msg->length, sender_pid, receiver_pid,
+                 SEND);
 }
 
-int msg_matching(struct message *msg, int pid) {
+int msg_matching(struct message *msg, MSG_THEAD pid) {
+  pr_info("msg_matching print msg");
+  if (msg)
+    print_msg_data(msg);
   MSG_THEAD sender_pid = pid;
   MSG_THEAD receiver_pid = msg->head->pid;
   MSG_THEAD msg_id = msg->head->msg_id;
-  int status = 0;
+  int status = SUCCESS;
   switch (msg_id) {
   case INIT:
     status = init_msg(sender_pid);
@@ -237,7 +260,8 @@ int msg_matching(struct message *msg, int pid) {
     status = send_msg(msg, sender_pid, receiver_pid);
     break;
   default:
-    status = -1;
+    status = ERROR;
+    printk("msg_matching: unknown message id");
     break;
   }
   return status;
