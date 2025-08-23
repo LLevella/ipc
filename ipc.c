@@ -124,7 +124,6 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
     return -EFAULT;
   }
   pr_info("%d bytes was readed", nbytes);
-  // //*offset += nbytes;
   clean_tail_msg(&(pidp->head));
   pr_info("Message was removed");
   mutex_unlock(&pidp->lock);
@@ -157,7 +156,6 @@ ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
   }
   nbytes = length;
   pr_info("Data was copied from user space to msg buffer, %d bytes", nbytes);
-  //*offset += nbytes;
   mutex_unlock(&pidp->lock);
   pr_info("Mutex unlocked");
   if (msg_matching(msg, pid))

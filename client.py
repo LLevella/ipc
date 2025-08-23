@@ -46,7 +46,7 @@ def get_val(key):
     return "ERROR"
 
 
-def pack_msg(msg, val):
+def pack_msg(msg, val, respid=pid):
     if val:
         format = f'ii{len(val)}s'
         return struct.pack(format, msg[0], msg[1], val.encode(encoding='UTF-8'))
@@ -64,15 +64,11 @@ def calcISize(bytes):
     return int(len(bytes)/intSize)
 
 
-if __name__ == "__main__":
-
-    msg_init = [INIT, 0]
-    write_ipc(pack_msg(msg_init, "0"))
-
+def get_answer():
     poll = select.poll()
     poll.register(ipc_fd, select.POLLIN)
-
     try:
+        timer_stop = 60
         while True:
             events = poll.poll(4)
             for fd, event in events:
@@ -86,14 +82,32 @@ if __name__ == "__main__":
                         print("pids_tmp", pids_tmp)
                         pids = [p for p in pids_tmp if p > 0 and p != pid]
                         print("PIDs registered", pids)
+                        return pids
                     elif msg[0] == SEND:
-                        nbytes = write_ipc(
-                            pack_msg((SEND, msg[1]), get_val(msg[2].decode('UTF-8'))))
+                        return msg[2].decode('UTF-8')
                     else:
                         raise Exception('Unknown command')
             print("I'm waiting 4 seconds")
             time.sleep(4)
+            timer_stop = timer_stop - 4
+            if timer_stop < 0:
+                raise Exception('Response timed out')
     except Exception as e:
         print(e)
+    return ""
+
+
+if __name__ == "__main__":
+
+    msg_head = [INIT, 0]
+    write_ipc(pack_msg(msg_head, "0"))
+    pids = get_answer()
+    if len(pids) > 0:
+        print("ok", pids)
+        for key in base:
+            msg_head = [SEND, pids[0]]
+            write_ipc(pack_msg(msg_head, key, pids[0]))
+            new_val = get_answer()
+            print(f"{key, base[key]} ?= {key, new_val}")
 
     os.close(ipc_fd)
