@@ -125,6 +125,7 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
   }
   pr_info("%d bytes was readed", nbytes);
   clean_tail_msg(&(pidp->head));
+  pidp->nmsgs--;
   pr_info("Message was removed");
   mutex_unlock(&pidp->lock);
   pr_info("Mutex unlocked");
@@ -169,7 +170,7 @@ ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
   процесса, есть сообщения, которые нужно прочитать.
  */
 __poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl) {
-  __poll_t mask = 0;
+  __poll_t mask = (POLLOUT | POLLWRNORM);
   int pid = task_pid_nr(current);
   pr_info("Poll function was called by PID %d\n", pid);
   struct pid_msg *pidp = filp->private_data;
@@ -177,7 +178,7 @@ __poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl) {
   int ipid = pid_nfind(pid);
   pr_info("iPID pointer poll device file %d", ipid);
   if (ipid < 0)
-    return mask;
+    return 0;
   mutex_lock(&pidp->lock);
   pr_info("Mutex locked");
   if (pidp->head != NULL) {

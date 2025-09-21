@@ -48,11 +48,13 @@ int msg_alloc(struct message **msg, size_t length) {
 
 void pids_init(void) {
   int i = 0;
-
+  mutex_lock(&pidslock);
   for (i = 0; i < NPIDS; i++) {
     pids[i] = -1;
     pids_msg_list[i].head = NULL;
+    pids_msg_list[i].nmsgs = 0;
   }
+  mutex_unlock(&pidslock);
 }
 
 void pids_uninit(void) {
@@ -64,6 +66,7 @@ void pids_uninit(void) {
     pids[i] = -1;
     msg_q_free(pids_msg_list[i].head);
     pids_msg_list[i].head = NULL;
+    pids_msg_list[i].nmsgs = 0;
   }
 
   mutex_unlock(&pidslock);
@@ -137,6 +140,7 @@ void pid_unregister(int pid) {
     pids[i] = -1;
     msg_q_free(pids_msg_list[i].head);
     pids_msg_list[i].head = NULL;
+    pids_msg_list[i].nmsgs = 0;
   }
 
   mutex_unlock(&pidslock);
@@ -207,8 +211,13 @@ static int add_msg(MSG_THEAD msg_id, void *data, size_t length,
   struct pid_msg *cur_pid_msg = get_pid_msg_list(receiver_pid);
   struct messages_list *head = NULL;
   struct message *msg;
-  struct msg_head h;
   mutex_lock(&cur_pid_msg->lock);
+  if (cur_pid_msg->nmsgs >= MAXNMSG) {
+    mutex_unlock(&cur_pid_msg->lock);
+    return FULL;
+  } else
+    cur_pid_msg->nmsgs++;
+
   head = cur_pid_msg->head;
   cur_pid_msg->head =
       (struct messages_list *)kmalloc(sizeof(struct messages_list), GFP_KERNEL);
