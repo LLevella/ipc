@@ -11,7 +11,6 @@ headSize = struct.calcsize('ii')
 intSize = struct.calcsize('i')
 pid = os.getpid()
 print("Server was started with pid", pid)
-pids = []
 # номера команд в протоколе сообщений
 INIT = int(10)
 # инициализация, когда процесс хочет
@@ -26,27 +25,38 @@ ipc_fd = os.open(ipc_path, os.O_NONBLOCK | os.O_RDWR)
 with open("base.json", "r") as read_file:
     base = json.load(read_file)
 
+even_flags = {
+    "read": select.POLLIN | select.POLLRDNORM,
+    "write":
+        select.POLLOUT | select.POLLWRNORM}
 
-def read_ipc(fd):
-    inBytes = os.read(fd, bufN)
+
+def read_ipc(fd, buffer_len):
+    inBytes = os.read(fd, buffer_len)
     print("Byte array read:", inBytes)
     if len(inBytes) == headSize:
-        return struct.unpack("ii", inBytes)
+        format = 'ii'
     elif len(inBytes) > headSize:
         format = f'ii{len(inBytes)-headSize}s'
-        return struct.unpack(format, inBytes)
     else:
         raise Exception('Unknown message format')
+    return struct.unpack(format, inBytes)
+
+
+def write_ipc(fd, msg):
+    numBytes = os.write(fd, msg)
+    print("Byte array write:", msg)
+    print("Number of bytes was written:", numBytes)
+    return numBytes
 
 
 def get_val(key):
-    print("key", key)
     if key in base:
         return str(base[key])
     return "ERROR"
 
 
-def pack_msg(msg, val, respid=pid):
+def pack_msg(msg, val):
     if val:
         format = f'ii{len(val)}s'
         return struct.pack(format, msg[0], msg[1], val.encode(encoding='UTF-8'))
@@ -54,60 +64,72 @@ def pack_msg(msg, val, respid=pid):
         return struct.pack("ii", msg[0], msg[1])
 
 
-def write_ipc(msg):
-    numBytes = os.write(ipc_fd, msg)
-    print("Byte array write:", msg)
-    print("Number of bytes written:", numBytes)
-
-
 def calcISize(bytes):
     return int(len(bytes)/intSize)
 
 
-def get_answer():
-    poll = select.poll()
-    poll.register(ipc_fd, select.POLLIN)
-    try:
-        timer_stop = 60
-        while True:
-            events = poll.poll(4)
-            for fd, event in events:
-                print("fd, event = ", fd, event)
-                if event == select.POLLIN or event == select.POLLRDNORM:
-                    msg = read_ipc(ipc_fd)
-                    print("msg", msg)
-                    if msg[0] == INIT_STATUS:
-                        format = f'{calcISize(msg[2])}i'
-                        pids_tmp = struct.unpack(format, msg[2])
-                        print("pids_tmp", pids_tmp)
-                        pids = [p for p in pids_tmp if p > 0 and p != pid]
-                        print("PIDs registered", pids)
-                        return pids
-                    elif msg[0] == SEND:
-                        return msg[2].decode('UTF-8')
-                    else:
-                        raise Exception('Unknown command')
-            print("I'm waiting 4 seconds")
-            time.sleep(4)
-            timer_stop = timer_stop - 4
-            if timer_stop < 0:
-                raise Exception('Response timed out')
-    except Exception as e:
-        print(e)
-    return ""
+def io_func(func_arg, msg):
+    def polling_cycle(fd, s, func, poll_event):
+        poll = select.poll()
+        poll.register(fd, poll_event)
+        try:
+            timer_stop = 10
+            while True:
+                events = poll.poll(2)
+                for _, event in events:
+                    if event == poll_event:
+                        res = func(fd, s)
+                        return res
+                print("I'm waiting 2 seconds")
+                time.sleep(2)
+                timer_stop = timer_stop - 1
+                if timer_stop == 0:
+                    raise Exception('Response timed out')
+        except Exception as e:
+            print(e)
+        return 0
+
+    res = polling_cycle(ipc_fd, msg, func_arg["write"], even_flags["write"])
+    if res:
+        res = polling_cycle(ipc_fd, bufN, func_arg["read"], even_flags["read"])
+        return res
+    return None
 
 
 if __name__ == "__main__":
 
-    msg_head = [INIT, 0]
-    write_ipc(pack_msg(msg_head, "0"))
-    pids = get_answer()
+    func = {
+        "read": read_ipc,
+        "write": write_ipc
+    }
+    pids = []
+    # init
+    out_msg = pack_msg([INIT, 0], " ")
+    in_msg = io_func(func, out_msg)
+    if in_msg[0] == INIT_STATUS:
+        format = f'{calcISize(in_msg[2])}i'
+        pids_tmp = struct.unpack(format, in_msg[2])
+        print("pids_tmp", pids_tmp)
+        pids = [p for p in pids_tmp if p > 0 and p != pid]
+        print("PIDs registered", pids)
+    else:
+        print("Unknown answer for INIT")
+        exit
+
     if len(pids) > 0:
-        print("ok", pids)
         for key in base:
-            msg_head = [SEND, pids[0]]
-            write_ipc(pack_msg(msg_head, key, pids[0]))
-            new_val = get_answer()
+            secure_random = random.SystemRandom()
+            cur_pid = secure_random.choice(pids)
+            print("cur pid serv ", cur_pid)
+            out_msg = pack_msg([SEND, cur_pid], key)
+            in_msg = io_func(func, out_msg)
+            new_val = "?"
+            if in_msg[0] == SEND:
+                new_val = in_msg[2].decode('UTF-8')
+            else:
+                print("Unknown answer for SEND")
             print(f"{key, base[key]} ?= {key, new_val}")
+    else:
+        print("There is not another pids for answers")
 
     os.close(ipc_fd)
