@@ -1,312 +1,628 @@
-[29313.941631] PID 9124 closed device file
-[29357.479085] Device was opened by PID 9147
-[29357.479089] pid_register 0
-[29357.479090] PID was registered
-[29357.479091] PID msg list now in private data of file 
-[29357.482611] Write function was called by PID 9147
-[29357.482616] PID pointer write device file
-[29357.482618] Message allocated
-[29357.482618] Mutex locked
-[29357.482619] Data was copied from user space to msg buffer, 13 bytes
-[29357.482620] Mutex unlocked
-[29357.482621] msg_matching print msg
-[29357.482622] print_msg_data: msg->head {10, 9147}
-[29357.482623] print_msg_data: msg->body:
-[29357.482623] 6b  
-[29357.482624] 65  
-[29357.482625] 79  
-[29357.482625] 2d  
-[29357.482626] 31  
-[29357.482626] print_msg_data: msg->data:
-[29357.482627] a  
-[29357.482628] 0  
-[29357.482628] 0  
-[29357.482629] 0  
-[29357.482629] ffffffbb  
-[29357.482630] 23  
-[29357.482631] 0  
-[29357.482631] 0  
-[29357.482632] 6b  
-[29357.482633] 65  
-[29357.482633] 79  
-[29357.482634] 2d  
-[29357.482634] 31  
-[29357.482636] add_msg print msg
-[29357.482636] print_msg_data: msg->head {11, 0}
-[29357.482637] print_msg_data: msg->body:
-[29357.482637] ffffffbb  
-[29357.482638] 23  
-[29357.482639] 0  
-[29357.482639] 0  
-[29357.482640] ffffffff  
-[29357.482641] ffffffff  
-[29357.482641] ffffffff  
-[29357.482642] ffffffff  
-[29357.482642] ffffffff  
-[29357.482643] ffffffff  
-[29357.482644] ffffffff  
-[29357.482644] ffffffff  
-[29357.482645] ffffffff  
-[29357.482645] ffffffff  
-[29357.482646] ffffffff  
-[29357.482647] ffffffff  
-[29357.482647] print_msg_data: msg->data:
-[29357.482648] b  
-[29357.482648] 0  
-[29357.482649] 0  
-[29357.482649] 0  
-[29357.482650] 0  
-[29357.482651] 0  
-[29357.482651] 0  
-[29357.482652] 0  
-[29357.482653] ffffffbb  
-[29357.482653] 23  
-[29357.482654] 0  
-[29357.482655] 0  
-[29357.482655] ffffffff  
-[29357.482656] ffffffff  
-[29357.482657] ffffffff  
-[29357.482657] ffffffff  
-[29357.482658] ffffffff  
-[29357.482659] ffffffff  
-[29357.482659] ffffffff  
-[29357.482660] ffffffff  
-[29357.482661] ffffffff  
-[29357.482661] ffffffff  
-[29357.482662] ffffffff  
-[29357.482663] ffffffff  
-[29357.482663] MSG was filtered
-[29357.482714] Poll function was called by PID 9147
-[29357.482715] PID pointer poll device file
-[29357.482715] iPID pointer poll device file 0
-[29357.482716] Mutex locked
-[29357.482717] PID 9147 buffer has data for reading
-[29357.482717] Mutex unlocked
-[29357.482729] PID pointer read device file
-[29357.482730] Mutex locked
-[29357.482731] get_tail_msg print msg
-[29357.482731] print_msg_data: msg->head {11, 0}
-[29357.482732] print_msg_data: msg->body:
-[29357.482755] ffffffbb  
-[29357.482756] 23  
-[29357.482756] 0  
-[29357.482757] 0  
-[29357.482758] ffffffff  
-[29357.482758] ffffffff  
-[29357.482759] ffffffff  
-[29357.482760] ffffffff  
-[29357.482760] ffffffff  
-[29357.482761] ffffffff  
-[29357.482762] ffffffff  
-[29357.482762] ffffffff  
-[29357.482763] ffffffff  
-[29357.482764] ffffffff  
-[29357.482764] ffffffff  
-[29357.482765] ffffffff  
-[29357.482766] print_msg_data: msg->data:
-[29357.482766] b  
-[29357.482767] 0  
-[29357.482768] 0  
-[29357.482768] 0  
-[29357.482769] 0  
-[29357.482769] 0  
-[29357.482770] 0  
-[29357.482771] 0  
-[29357.482771] ffffffbb  
-[29357.482772] 23  
-[29357.482772] 0  
-[29357.482773] 0  
-[29357.482774] ffffffff  
-[29357.482774] ffffffff  
-[29357.482775] ffffffff  
-[29357.482775] ffffffff  
-[29357.482776] ffffffff  
-[29357.482776] ffffffff  
-[29357.482777] ffffffff  
-[29357.482778] ffffffff  
-[29357.482778] ffffffff  
-[29357.482779] ffffffff  
-[29357.482779] ffffffff  
-[29357.482780] ffffffff  
-[29357.482781] Message was founded
-[29357.482781] 24 bytes was readed
-[29357.482783] Message was removed
-[29357.482783] Mutex unlocked
-[29359.737426] Device was opened by PID 9150
-[29359.737430] pid_register 1
-[29359.737430] PID was registered
-[29359.737431] PID msg list now in private data of file 
-[29359.739966] Write function was called by PID 9150
-[29359.739969] PID pointer write device file
-[29359.739970] Message allocated
-[29359.739971] Mutex locked
-[29359.739972] Data was copied from user space to msg buffer, 13 bytes
-[29359.739973] Mutex unlocked
-[29359.739973] msg_matching print msg
-[29359.739974] print_msg_data: msg->head {10, 9150}
-[29359.739974] print_msg_data: msg->body:
-[29359.739975] 6b  
-[29359.739975] 65  
-[29359.739976] 79  
-[29359.739976] 2d  
-[29359.739977] 31  
-[29359.739977] print_msg_data: msg->data:
-[29359.739978] a  
-[29359.739978] 0  
-[29359.739979] 0  
-[29359.739979] 0  
-[29359.739979] ffffffbe  
-[29359.739980] 23  
-[29359.739980] 0  
-[29359.739981] 0  
-[29359.739981] 6b  
-[29359.739982] 65  
-[29359.739982] 79  
-[29359.739983] 2d  
-[29359.739983] 31  
-[29359.739984] add_msg print msg
-[29359.739984] print_msg_data: msg->head {11, 0}
-[29359.739985] print_msg_data: msg->body:
-[29359.739985] ffffffbb  
-[29359.739986] 23  
-[29359.739986] 0  
-[29359.739987] 0  
-[29359.739987] ffffffbe  
-[29359.739988] 23  
-[29359.739988] 0  
-[29359.740002] 0  
-[29359.740003] ffffffff  
-[29359.740003] ffffffff  
-[29359.740004] ffffffff  
-[29359.740004] ffffffff  
-[29359.740005] ffffffff  
-[29359.740005] ffffffff  
-[29359.740005] ffffffff  
-[29359.740006] ffffffff  
-[29359.740006] print_msg_data: msg->data:
-[29359.740007] b  
-[29359.740007] 0  
-[29359.740007] 0  
-[29359.740008] 0  
-[29359.740008] 0  
-[29359.740009] 0  
-[29359.740009] 0  
-[29359.740010] 0  
-[29359.740010] ffffffbb  
-[29359.740011] 23  
-[29359.740011] 0  
-[29359.740011] 0  
-[29359.740012] ffffffbe  
-[29359.740012] 23  
-[29359.740013] 0  
-[29359.740013] 0  
-[29359.740013] ffffffff  
-[29359.740014] ffffffff  
-[29359.740014] ffffffff  
-[29359.740015] ffffffff  
-[29359.740015] ffffffff  
-[29359.740016] ffffffff  
-[29359.740016] ffffffff  
-[29359.740016] ffffffff  
-[29359.740017] MSG was filtered
-[29359.740251] Poll function was called by PID 9150
-[29359.740252] PID pointer poll device file
-[29359.740253] iPID pointer poll device file 1
-[29359.740253] Mutex locked
-[29359.740254] PID 9150 buffer has data for reading
-[29359.740254] Mutex unlocked
-[29359.740350] PID pointer read device file
-[29359.740351] Mutex locked
-[29359.740352] get_tail_msg print msg
-[29359.740352] print_msg_data: msg->head {11, 0}
-[29359.740367] print_msg_data: msg->body:
-[29359.740368] ffffffbb  
-[29359.740368] 23  
-[29359.740369] 0  
-[29359.740369] 0  
-[29359.740369] ffffffbe  
-[29359.740370] 23  
-[29359.740370] 0  
-[29359.740371] 0  
-[29359.740371] ffffffff  
-[29359.740372] ffffffff  
-[29359.740372] ffffffff  
-[29359.740372] ffffffff  
-[29359.740373] ffffffff  
-[29359.740373] ffffffff  
-[29359.740374] ffffffff  
-[29359.740374] ffffffff  
-[29359.740374] print_msg_data: msg->data:
-[29359.740375] b  
-[29359.740375] 0  
-[29359.740376] 0  
-[29359.740376] 0  
-[29359.740377] 0  
-[29359.740377] 0  
-[29359.740377] 0  
-[29359.740378] 0  
-[29359.740385] ffffffbb  
-[29359.740386] 23  
-[29359.740386] 0  
-[29359.740387] 0  
-[29359.740387] ffffffbe  
-[29359.740388] 23  
-[29359.740388] 0  
-[29359.740389] 0  
-[29359.740389] ffffffff  
-[29359.740390] ffffffff  
-[29359.740390] ffffffff  
-[29359.740391] ffffffff  
-[29359.740391] ffffffff  
-[29359.740392] ffffffff  
-[29359.740402] ffffffff  
-[29359.740403] ffffffff  
-[29359.740404] Message was founded
-[29359.740404] 24 bytes was readed
-[29359.740405] Message was removed
-[29359.740406] Mutex unlocked
-[29361.481742] Poll function was called by PID 9147
-[29361.481746] PID pointer poll device file
-[29361.481747] iPID pointer poll device file 0
-[29361.481748] Mutex locked
-[29361.481749] Mutex unlocked
-[29361.486402] Poll function was called by PID 9147
-[29361.486405] PID pointer poll device file
-[29361.486406] iPID pointer poll device file 0
-[29361.486406] Mutex locked
-[29361.486407] Mutex unlocked
-[29363.744487] Poll function was called by PID 9150
-[29363.744497] PID pointer poll device file
-[29363.744501] iPID pointer poll device file 1
-[29363.744503] Mutex locked
-[29363.744505] Mutex unlocked
-[29363.751088] Poll function was called by PID 9150
-[29363.751096] PID pointer poll device file
-[29363.751099] iPID pointer poll device file 1
-[29363.751101] Mutex locked
-[29363.751103] Mutex unlocked
-[29365.490255] Poll function was called by PID 9147
-[29365.490265] PID pointer poll device file
-[29365.490268] iPID pointer poll device file 0
-[29365.490271] Mutex locked
-[29365.490273] Mutex unlocked
-[29365.494805] Poll function was called by PID 9147
-[29365.494814] PID pointer poll device file
-[29365.494816] iPID pointer poll device file 0
-[29365.494819] Mutex locked
-[29365.494820] Mutex unlocked
-[29366.294086] Device was closed by PID 9147
-[29366.294091] PID was unregistered
-[29366.294092] PID 9147 closed device file
-[29367.754245] Poll function was called by PID 9150
-[29367.754250] PID pointer poll device file
-[29367.754252] iPID pointer poll device file 1
-[29367.754253] Mutex locked
-[29367.754253] Mutex unlocked
-[29367.758729] Poll function was called by PID 9150
-[29367.758734] PID pointer poll device file
-[29367.758735] iPID pointer poll device file 1
-[29367.758737] Mutex locked
-[29367.758738] Mutex unlocked
-[29369.185583] Device was closed by PID 9150
-[29369.185588] PID was unregistered
+[  138.659364] Pids buffer was initilized
+[  138.659376] ipcdev was assigned major number 236.
+[  138.659905] Device created on /dev/ipcdev
+[  143.402217] Device was opened by PID 3573
+[  143.402221] pid_register 0
+[  143.402222] PID was registered
+[  143.402223] PID msg list now in private data of file 
+[  143.404366] Write function was called by PID 3573
+[  143.404369] PID pointer write device file
+[  143.404371] Message allocated
+[  143.404372] Mutex locked
+[  143.404373] Data was copied from user space to msg buffer, 9 bytes
+[  143.404373] Mutex unlocked
+[  143.404374] msg_matching print msg
+[  143.404374] print_msg_data: msg->head {10, 0}
+[  143.404375] print_msg_data: msg->body:
+[  143.404376] 30  
+[  143.404376] print_msg_data: msg->data:
+[  143.404377] a  
+[  143.404377] 0  
+[  143.404378] 0  
+[  143.404378] 0  
+[  143.404379] 0  
+[  143.404379] 0  
+[  143.404379] 0  
+[  143.404380] 0  
+[  143.404380] 30  
+[  143.404381] add_msg print msg
+[  143.404381] print_msg_data: msg->head {11, 0}
+[  143.404382] print_msg_data: msg->body:
+[  143.404382] fffffff5  
+[  143.404383] d  
+[  143.404383] 0  
+[  143.404384] 0  
+[  143.404384] ffffffff  
+[  143.404385] ffffffff  
+[  143.404385] ffffffff  
+[  143.404386] ffffffff  
+[  143.404386] ffffffff  
+[  143.404386] ffffffff  
+[  143.404387] ffffffff  
+[  143.404387] ffffffff  
+[  143.404388] ffffffff  
+[  143.404388] ffffffff  
+[  143.404389] ffffffff  
+[  143.404389] ffffffff  
+[  143.404389] print_msg_data: msg->data:
+[  143.404390] b  
+[  143.404390] 0  
+[  143.404391] 0  
+[  143.404391] 0  
+[  143.404391] 0  
+[  143.404392] 0  
+[  143.404392] 0  
+[  143.404393] 0  
+[  143.404393] fffffff5  
+[  143.404394] d  
+[  143.404394] 0  
+[  143.404394] 0  
+[  143.404395] ffffffff  
+[  143.404395] ffffffff  
+[  143.404396] ffffffff  
+[  143.404396] ffffffff  
+[  143.404397] ffffffff  
+[  143.404397] ffffffff  
+[  143.404397] ffffffff  
+[  143.404398] ffffffff  
+[  143.404398] ffffffff  
+[  143.404399] ffffffff  
+[  143.404399] ffffffff  
+[  143.404399] ffffffff  
+[  143.404400] MSG was filtered
+[  143.405025] Poll function was called by PID 3573
+[  143.405040] PID pointer poll device file
+[  143.405040] iPID pointer poll device file 0
+[  143.405041] Mutex locked
+[  143.405041] PID 3573 buffer has data for reading
+[  143.405042] Mutex unlocked
+[  143.405042] PID 3573 buffer is able for writing
+[  143.420384] Poll function was called by PID 3573
+[  143.420434] PID pointer poll device file
+[  143.420435] iPID pointer poll device file 0
+[  143.420443] Mutex locked
+[  143.420443] PID 3573 buffer has data for reading
+[  143.420444] Mutex unlocked
+[  143.420445] PID 3573 buffer is able for writing
+[  145.425229] Poll function was called by PID 3573
+[  145.425233] PID pointer poll device file
+[  145.425234] iPID pointer poll device file 0
+[  145.425235] Mutex locked
+[  145.425235] PID 3573 buffer has data for reading
+[  145.425236] Mutex unlocked
+[  145.425236] PID 3573 buffer is able for writing
+[  145.429864] Poll function was called by PID 3573
+[  145.429866] PID pointer poll device file
+[  145.429867] iPID pointer poll device file 0
+[  145.429868] Mutex locked
+[  145.429868] PID 3573 buffer has data for reading
+[  145.429869] Mutex unlocked
+[  145.429869] PID 3573 buffer is able for writing
+[  147.434668] Poll function was called by PID 3573
+[  147.434730] PID pointer poll device file
+[  147.434732] iPID pointer poll device file 0
+[  147.434733] Mutex locked
+[  147.434733] PID 3573 buffer has data for reading
+[  147.434734] Mutex unlocked
+[  147.434734] PID 3573 buffer is able for writing
+[  147.444789] Poll function was called by PID 3573
+[  147.444792] PID pointer poll device file
+[  147.444792] iPID pointer poll device file 0
+[  147.444793] Mutex locked
+[  147.444793] PID 3573 buffer has data for reading
+[  147.444794] Mutex unlocked
+[  147.444794] PID 3573 buffer is able for writing
+[  149.448338] Poll function was called by PID 3573
+[  149.448342] PID pointer poll device file
+[  149.448343] iPID pointer poll device file 0
+[  149.448344] Mutex locked
+[  149.448344] PID 3573 buffer has data for reading
+[  149.448345] Mutex unlocked
+[  149.448345] PID 3573 buffer is able for writing
+[  149.452377] Poll function was called by PID 3573
+[  149.452379] PID pointer poll device file
+[  149.452379] iPID pointer poll device file 0
+[  149.452380] Mutex locked
+[  149.452380] PID 3573 buffer has data for reading
+[  149.452381] Mutex unlocked
+[  149.452381] PID 3573 buffer is able for writing
+[  151.455811] Poll function was called by PID 3573
+[  151.455841] PID pointer poll device file
+[  151.455856] iPID pointer poll device file 0
+[  151.455857] Mutex locked
+[  151.455857] PID 3573 buffer has data for reading
+[  151.455858] Mutex unlocked
+[  151.455858] PID 3573 buffer is able for writing
+[  151.461024] Poll function was called by PID 3573
+[  151.461052] PID pointer poll device file
+[  151.461060] iPID pointer poll device file 0
+[  151.461062] Mutex locked
+[  151.461062] PID 3573 buffer has data for reading
+[  151.461063] Mutex unlocked
+[  151.461063] PID 3573 buffer is able for writing
+[  153.465182] Poll function was called by PID 3573
+[  153.465186] PID pointer poll device file
+[  153.465193] iPID pointer poll device file 0
+[  153.465194] Mutex locked
+[  153.465194] PID 3573 buffer has data for reading
+[  153.465195] Mutex unlocked
+[  153.465195] PID 3573 buffer is able for writing
+[  153.469331] Poll function was called by PID 3573
+[  153.469333] PID pointer poll device file
+[  153.469334] iPID pointer poll device file 0
+[  153.469334] Mutex locked
+[  153.469335] PID 3573 buffer has data for reading
+[  153.469335] Mutex unlocked
+[  153.469336] PID 3573 buffer is able for writing
+[  155.473069] Poll function was called by PID 3573
+[  155.473072] PID pointer poll device file
+[  155.473073] iPID pointer poll device file 0
+[  155.473074] Mutex locked
+[  155.473075] PID 3573 buffer has data for reading
+[  155.473075] Mutex unlocked
+[  155.473076] PID 3573 buffer is able for writing
+[  155.477301] Poll function was called by PID 3573
+[  155.477304] PID pointer poll device file
+[  155.477305] iPID pointer poll device file 0
+[  155.477305] Mutex locked
+[  155.477306] PID 3573 buffer has data for reading
+[  155.477306] Mutex unlocked
+[  155.477307] PID 3573 buffer is able for writing
+[  156.137438] Device was opened by PID 3587
+[  156.137441] pid_register 1
+[  156.137442] PID was registered
+[  156.137443] PID msg list now in private data of file 
+[  156.140015] Poll function was called by PID 3587
+[  156.140018] PID pointer poll device file
+[  156.140019] iPID pointer poll device file 1
+[  156.140019] Mutex locked
+[  156.140020] Mutex unlocked
+[  156.140020] PID 3587 buffer is able for writing
+[  156.140025] Write function was called by PID 3587
+[  156.140026] PID pointer write device file
+[  156.140027] Message allocated
+[  156.140028] Mutex locked
+[  156.140028] Data was copied from user space to msg buffer, 9 bytes
+[  156.140029] Mutex unlocked
+[  156.140030] msg_matching print msg
+[  156.140030] print_msg_data: msg->head {10, 0}
+[  156.140031] print_msg_data: msg->body:
+[  156.140031] 20  
+[  156.140032] print_msg_data: msg->data:
+[  156.140032] a  
+[  156.140033] 0  
+[  156.140033] 0  
+[  156.140034] 0  
+[  156.140034] 0  
+[  156.140034] 0  
+[  156.140035] 0  
+[  156.140035] 0  
+[  156.140036] 20  
+[  156.140037] add_msg print msg
+[  156.140037] print_msg_data: msg->head {11, 0}
+[  156.140038] print_msg_data: msg->body:
+[  156.140038] fffffff5  
+[  156.140038] d  
+[  156.140039] 0  
+[  156.140039] 0  
+[  156.140040] 3  
+[  156.140040] e  
+[  156.140041] 0  
+[  156.140041] 0  
+[  156.140041] ffffffff  
+[  156.140042] ffffffff  
+[  156.140042] ffffffff  
+[  156.140043] ffffffff  
+[  156.140043] ffffffff  
+[  156.140044] ffffffff  
+[  156.140044] ffffffff  
+[  156.140044] ffffffff  
+[  156.140045] print_msg_data: msg->data:
+[  156.140045] b  
+[  156.140046] 0  
+[  156.140046] 0  
+[  156.140046] 0  
+[  156.140047] 0  
+[  156.140047] 0  
+[  156.140048] 0  
+[  156.140048] 0  
+[  156.140049] fffffff5  
+[  156.140049] d  
+[  156.140050] 0  
+[  156.140050] 0  
+[  156.140050] 3  
+[  156.140051] e  
+[  156.140051] 0  
+[  156.140052] 0  
+[  156.140052] ffffffff  
+[  156.140053] ffffffff  
+[  156.140053] ffffffff  
+[  156.140053] ffffffff  
+[  156.140054] ffffffff  
+[  156.140054] ffffffff  
+[  156.140055] ffffffff  
+[  156.140055] ffffffff  
+[  156.140055] MSG was filtered
+[  156.140274] Poll function was called by PID 3587
+[  156.140276] PID pointer poll device file
+[  156.140276] iPID pointer poll device file 1
+[  156.140277] Mutex locked
+[  156.140277] PID 3587 buffer has data for reading
+[  156.140278] Mutex unlocked
+[  156.140278] PID 3587 buffer is able for writing
+[  156.142347] Poll function was called by PID 3587
+[  156.142349] PID pointer poll device file
+[  156.142349] iPID pointer poll device file 1
+[  156.142350] Mutex locked
+[  156.142350] PID 3587 buffer has data for reading
+[  156.142351] Mutex unlocked
+[  156.142351] PID 3587 buffer is able for writing
+[  157.481152] Poll function was called by PID 3573
+[  157.481155] PID pointer poll device file
+[  157.481156] iPID pointer poll device file 0
+[  157.481157] Mutex locked
+[  157.481157] PID 3573 buffer has data for reading
+[  157.481158] Mutex unlocked
+[  157.481158] PID 3573 buffer is able for writing
+[  157.485407] Poll function was called by PID 3573
+[  157.485410] PID pointer poll device file
+[  157.485410] iPID pointer poll device file 0
+[  157.485411] Mutex locked
+[  157.485411] PID 3573 buffer has data for reading
+[  157.485412] Mutex unlocked
+[  157.485412] PID 3573 buffer is able for writing
+[  158.146063] Poll function was called by PID 3587
+[  158.146067] PID pointer poll device file
+[  158.146067] iPID pointer poll device file 1
+[  158.146068] Mutex locked
+[  158.146069] PID 3587 buffer has data for reading
+[  158.146069] Mutex unlocked
+[  158.146070] PID 3587 buffer is able for writing
+[  158.148278] Poll function was called by PID 3587
+[  158.148280] PID pointer poll device file
+[  158.148281] iPID pointer poll device file 1
+[  158.148281] Mutex locked
+[  158.148282] PID 3587 buffer has data for reading
+[  158.148282] Mutex unlocked
+[  158.148283] PID 3587 buffer is able for writing
+[  159.487637] Poll function was called by PID 3573
+[  159.487640] PID pointer poll device file
+[  159.487641] iPID pointer poll device file 0
+[  159.487642] Mutex locked
+[  159.487642] PID 3573 buffer has data for reading
+[  159.487643] Mutex unlocked
+[  159.487643] PID 3573 buffer is able for writing
+[  159.491960] Poll function was called by PID 3573
+[  159.491964] PID pointer poll device file
+[  159.491965] iPID pointer poll device file 0
+[  159.491965] Mutex locked
+[  159.491966] PID 3573 buffer has data for reading
+[  159.491966] Mutex unlocked
+[  159.491967] PID 3573 buffer is able for writing
+[  160.152146] Poll function was called by PID 3587
+[  160.152149] PID pointer poll device file
+[  160.152150] iPID pointer poll device file 1
+[  160.152151] Mutex locked
+[  160.152151] PID 3587 buffer has data for reading
+[  160.152152] Mutex unlocked
+[  160.152152] PID 3587 buffer is able for writing
+[  160.154649] Poll function was called by PID 3587
+[  160.154651] PID pointer poll device file
+[  160.154652] iPID pointer poll device file 1
+[  160.154652] Mutex locked
+[  160.154653] PID 3587 buffer has data for reading
+[  160.154653] Mutex unlocked
+[  160.154654] PID 3587 buffer is able for writing
+[  161.495266] Poll function was called by PID 3573
+[  161.495270] PID pointer poll device file
+[  161.495271] iPID pointer poll device file 0
+[  161.495271] Mutex locked
+[  161.495272] PID 3573 buffer has data for reading
+[  161.495272] Mutex unlocked
+[  161.495273] PID 3573 buffer is able for writing
+[  161.499476] Poll function was called by PID 3573
+[  161.499479] PID pointer poll device file
+[  161.499480] iPID pointer poll device file 0
+[  161.499481] Mutex locked
+[  161.499481] PID 3573 buffer has data for reading
+[  161.499482] Mutex unlocked
+[  161.499482] PID 3573 buffer is able for writing
+[  162.158004] Poll function was called by PID 3587
+[  162.158007] PID pointer poll device file
+[  162.158008] iPID pointer poll device file 1
+[  162.158009] Mutex locked
+[  162.158009] PID 3587 buffer has data for reading
+[  162.158010] Mutex unlocked
+[  162.158010] PID 3587 buffer is able for writing
+[  162.160340] Poll function was called by PID 3587
+[  162.160341] PID pointer poll device file
+[  162.160342] iPID pointer poll device file 1
+[  162.160342] Mutex locked
+[  162.160342] PID 3587 buffer has data for reading
+[  162.160343] Mutex unlocked
+[  162.160343] PID 3587 buffer is able for writing
+[  163.502629] Poll function was called by PID 3573
+[  163.502634] PID pointer poll device file
+[  163.502634] iPID pointer poll device file 0
+[  163.502635] Mutex locked
+[  163.502636] PID 3573 buffer has data for reading
+[  163.502636] Mutex unlocked
+[  163.502637] PID 3573 buffer is able for writing
+[  163.506652] Poll function was called by PID 3573
+[  163.506654] PID pointer poll device file
+[  163.506654] iPID pointer poll device file 0
+[  163.506655] Mutex locked
+[  163.506655] PID 3573 buffer has data for reading
+[  163.506656] Mutex unlocked
+[  163.506656] PID 3573 buffer is able for writing
+[  164.161924] Poll function was called by PID 3587
+[  164.161928] PID pointer poll device file
+[  164.161929] iPID pointer poll device file 1
+[  164.161929] Mutex locked
+[  164.161930] PID 3587 buffer has data for reading
+[  164.161930] Mutex unlocked
+[  164.161931] PID 3587 buffer is able for writing
+[  164.164189] Poll function was called by PID 3587
+[  164.164191] PID pointer poll device file
+[  164.164191] iPID pointer poll device file 1
+[  164.164192] Mutex locked
+[  164.164192] PID 3587 buffer has data for reading
+[  164.164193] Mutex unlocked
+[  164.164193] PID 3587 buffer is able for writing
+[  165.510371] Poll function was called by PID 3573
+[  165.510374] PID pointer poll device file
+[  165.510376] iPID pointer poll device file 0
+[  165.510376] Mutex locked
+[  165.510377] PID 3573 buffer has data for reading
+[  165.510378] Mutex unlocked
+[  165.510378] PID 3573 buffer is able for writing
+[  165.514624] Poll function was called by PID 3573
+[  165.514626] PID pointer poll device file
+[  165.514627] iPID pointer poll device file 0
+[  165.514628] Mutex locked
+[  165.514628] PID 3573 buffer has data for reading
+[  165.514629] Mutex unlocked
+[  165.514629] PID 3573 buffer is able for writing
+[  166.167518] Poll function was called by PID 3587
+[  166.167527] PID pointer poll device file
+[  166.167528] iPID pointer poll device file 1
+[  166.167529] Mutex locked
+[  166.167529] PID 3587 buffer has data for reading
+[  166.167530] Mutex unlocked
+[  166.167530] PID 3587 buffer is able for writing
+[  166.169581] Poll function was called by PID 3587
+[  166.169583] PID pointer poll device file
+[  166.169583] iPID pointer poll device file 1
+[  166.169584] Mutex locked
+[  166.169584] PID 3587 buffer has data for reading
+[  166.169585] Mutex unlocked
+[  166.169585] PID 3587 buffer is able for writing
+[  167.518408] Poll function was called by PID 3573
+[  167.518412] PID pointer poll device file
+[  167.518413] iPID pointer poll device file 0
+[  167.518414] Mutex locked
+[  167.518415] PID 3573 buffer has data for reading
+[  167.518415] Mutex unlocked
+[  167.518416] PID 3573 buffer is able for writing
+[  167.522672] Poll function was called by PID 3573
+[  167.522674] PID pointer poll device file
+[  167.522675] iPID pointer poll device file 0
+[  167.522676] Mutex locked
+[  167.522676] PID 3573 buffer has data for reading
+[  167.522677] Mutex unlocked
+[  167.522677] PID 3573 buffer is able for writing
+[  168.173086] Poll function was called by PID 3587
+[  168.173090] PID pointer poll device file
+[  168.173090] iPID pointer poll device file 1
+[  168.173091] Mutex locked
+[  168.173092] PID 3587 buffer has data for reading
+[  168.173092] Mutex unlocked
+[  168.173093] PID 3587 buffer is able for writing
+[  168.175362] Poll function was called by PID 3587
+[  168.175364] PID pointer poll device file
+[  168.175364] iPID pointer poll device file 1
+[  168.175365] Mutex locked
+[  168.175365] PID 3587 buffer has data for reading
+[  168.175366] Mutex unlocked
+[  168.175366] PID 3587 buffer is able for writing
+[  169.526213] Poll function was called by PID 3573
+[  169.526217] PID pointer poll device file
+[  169.526217] iPID pointer poll device file 0
+[  169.526218] Mutex locked
+[  169.526219] PID 3573 buffer has data for reading
+[  169.526219] Mutex unlocked
+[  169.526220] PID 3573 buffer is able for writing
+[  169.530745] Poll function was called by PID 3573
+[  169.530748] PID pointer poll device file
+[  169.530748] iPID pointer poll device file 0
+[  169.530749] Mutex locked
+[  169.530749] PID 3573 buffer has data for reading
+[  169.530750] Mutex unlocked
+[  169.530750] PID 3573 buffer is able for writing
+[  170.179003] Poll function was called by PID 3587
+[  170.179007] PID pointer poll device file
+[  170.179008] iPID pointer poll device file 1
+[  170.179008] Mutex locked
+[  170.179009] PID 3587 buffer has data for reading
+[  170.179009] Mutex unlocked
+[  170.179010] PID 3587 buffer is able for writing
+[  170.181303] Poll function was called by PID 3587
+[  170.181305] PID pointer poll device file
+[  170.181305] iPID pointer poll device file 1
+[  170.181306] Mutex locked
+[  170.181306] PID 3587 buffer has data for reading
+[  170.181307] Mutex unlocked
+[  170.181307] PID 3587 buffer is able for writing
+[  171.533886] Poll function was called by PID 3573
+[  171.533889] PID pointer poll device file
+[  171.533890] iPID pointer poll device file 0
+[  171.533891] Mutex locked
+[  171.533891] PID 3573 buffer has data for reading
+[  171.533892] Mutex unlocked
+[  171.533892] PID 3573 buffer is able for writing
+[  171.537986] Poll function was called by PID 3573
+[  171.537988] PID pointer poll device file
+[  171.537989] iPID pointer poll device file 0
+[  171.537990] Mutex locked
+[  171.537990] PID 3573 buffer has data for reading
+[  171.537990] Mutex unlocked
+[  171.537991] PID 3573 buffer is able for writing
+[  172.183994] Poll function was called by PID 3587
+[  172.183997] PID pointer poll device file
+[  172.183998] iPID pointer poll device file 1
+[  172.183999] Mutex locked
+[  172.183999] PID 3587 buffer has data for reading
+[  172.184000] Mutex unlocked
+[  172.184000] PID 3587 buffer is able for writing
+[  172.186225] Poll function was called by PID 3587
+[  172.186227] PID pointer poll device file
+[  172.186227] iPID pointer poll device file 1
+[  172.186228] Mutex locked
+[  172.186228] PID 3587 buffer has data for reading
+[  172.186229] Mutex unlocked
+[  172.186229] PID 3587 buffer is able for writing
+[  173.539292] Poll function was called by PID 3573
+[  173.539295] PID pointer poll device file
+[  173.539296] iPID pointer poll device file 0
+[  173.539296] Mutex locked
+[  173.539297] PID 3573 buffer has data for reading
+[  173.539298] Mutex unlocked
+[  173.539298] PID 3573 buffer is able for writing
+[  173.546407] Poll function was called by PID 3573
+[  173.546410] PID pointer poll device file
+[  173.546411] iPID pointer poll device file 0
+[  173.546412] Mutex locked
+[  173.546412] PID 3573 buffer has data for reading
+[  173.546413] Mutex unlocked
+[  173.546413] PID 3573 buffer is able for writing
+[  174.189704] Poll function was called by PID 3587
+[  174.189707] PID pointer poll device file
+[  174.189708] iPID pointer poll device file 1
+[  174.189709] Mutex locked
+[  174.189709] PID 3587 buffer has data for reading
+[  174.189710] Mutex unlocked
+[  174.189710] PID 3587 buffer is able for writing
+[  174.192270] Poll function was called by PID 3587
+[  174.192272] PID pointer poll device file
+[  174.192272] iPID pointer poll device file 1
+[  174.192273] Mutex locked
+[  174.192273] PID 3587 buffer has data for reading
+[  174.192274] Mutex unlocked
+[  174.192274] PID 3587 buffer is able for writing
+[  175.549951] Poll function was called by PID 3573
+[  175.549954] PID pointer poll device file
+[  175.549955] iPID pointer poll device file 0
+[  175.549956] Mutex locked
+[  175.549956] PID 3573 buffer has data for reading
+[  175.549957] Mutex unlocked
+[  175.549957] PID 3573 buffer is able for writing
+[  175.554035] Poll function was called by PID 3573
+[  175.554037] PID pointer poll device file
+[  175.554037] iPID pointer poll device file 0
+[  175.554038] Mutex locked
+[  175.554038] PID 3573 buffer has data for reading
+[  175.554039] Mutex unlocked
+[  175.554039] PID 3573 buffer is able for writing
+[  176.317080] Device was closed by PID 3587
+[  176.317085] PID was unregistered
+[  176.317086] PID 3587 closed device file
+[  177.557162] Poll function was called by PID 3573
+[  177.557166] PID pointer poll device file
+[  177.557166] iPID pointer poll device file 0
+[  177.557167] Mutex locked
+[  177.557168] PID 3573 buffer has data for reading
+[  177.557168] Mutex unlocked
+[  177.557169] PID 3573 buffer is able for writing
+[  177.561695] Poll function was called by PID 3573
+[  177.561698] PID pointer poll device file
+[  177.561698] iPID pointer poll device file 0
+[  177.561699] Mutex locked
+[  177.561699] PID 3573 buffer has data for reading
+[  177.561700] Mutex unlocked
+[  177.561700] PID 3573 buffer is able for writing
+[  179.565039] Poll function was called by PID 3573
+[  179.565043] PID pointer poll device file
+[  179.565044] iPID pointer poll device file 0
+[  179.565044] Mutex locked
+[  179.565045] PID 3573 buffer has data for reading
+[  179.565045] Mutex unlocked
+[  179.565046] PID 3573 buffer is able for writing
+[  179.569255] Poll function was called by PID 3573
+[  179.569256] PID pointer poll device file
+[  179.569257] iPID pointer poll device file 0
+[  179.569257] Mutex locked
+[  179.569258] PID 3573 buffer has data for reading
+[  179.569258] Mutex unlocked
+[  179.569259] PID 3573 buffer is able for writing
+[  181.572887] Poll function was called by PID 3573
+[  181.572890] PID pointer poll device file
+[  181.572891] iPID pointer poll device file 0
+[  181.572892] Mutex locked
+[  181.572892] PID 3573 buffer has data for reading
+[  181.572893] Mutex unlocked
+[  181.572893] PID 3573 buffer is able for writing
+[  181.577548] Poll function was called by PID 3573
+[  181.577550] PID pointer poll device file
+[  181.577551] iPID pointer poll device file 0
+[  181.577551] Mutex locked
+[  181.577552] PID 3573 buffer has data for reading
+[  181.577552] Mutex unlocked
+[  181.577553] PID 3573 buffer is able for writing
+[  183.580879] Poll function was called by PID 3573
+[  183.580883] PID pointer poll device file
+[  183.580884] iPID pointer poll device file 0
+[  183.580885] Mutex locked
+[  183.580885] PID 3573 buffer has data for reading
+[  183.580886] Mutex unlocked
+[  183.580886] PID 3573 buffer is able for writing
+[  183.585287] Poll function was called by PID 3573
+[  183.585289] PID pointer poll device file
+[  183.585290] iPID pointer poll device file 0
+[  183.585291] Mutex locked
+[  183.585291] PID 3573 buffer has data for reading
+[  183.585292] Mutex unlocked
+[  183.585292] PID 3573 buffer is able for writing
+[  185.588976] Poll function was called by PID 3573
+[  185.589016] PID pointer poll device file
+[  185.589017] iPID pointer poll device file 0
+[  185.589017] Mutex locked
+[  185.589018] PID 3573 buffer has data for reading
+[  185.589019] Mutex unlocked
+[  185.589019] PID 3573 buffer is able for writing
+[  185.593157] Poll function was called by PID 3573
+[  185.593163] PID pointer poll device file
+[  185.593164] iPID pointer poll device file 0
+[  185.593165] Mutex locked
+[  185.593165] PID 3573 buffer has data for reading
+[  185.593166] Mutex unlocked
+[  185.593166] PID 3573 buffer is able for writing
+[  187.596647] Poll function was called by PID 3573
+[  187.596650] PID pointer poll device file
+[  187.596651] iPID pointer poll device file 0
+[  187.596652] Mutex locked
+[  187.596653] PID 3573 buffer has data for reading
+[  187.596653] Mutex unlocked
+[  187.596654] PID 3573 buffer is able for writing
+[  187.600867] Poll function was called by PID 3573
+[  187.600869] PID pointer poll device file
+[  187.600870] iPID pointer poll device file 0
+[  187.600870] Mutex locked
+[  187.600871] PID 3573 buffer has data for reading
+[  187.600871] Mutex unlocked
+[  187.600872] PID 3573 buffer is able for writing
+[  189.604455] Poll function was called by PID 3573
+[  189.604459] PID pointer poll device file
+[  189.604485] iPID pointer poll device file 0
+[  189.604486] Mutex locked
+[  189.604487] PID 3573 buffer has data for reading
+[  189.604487] Mutex unlocked
+[  189.604488] PID 3573 buffer is able for writing
+[  189.608568] Poll function was called by PID 3573
+[  189.608570] PID pointer poll device file
+[  189.608571] iPID pointer poll device file 0
+[  189.608571] Mutex locked
+[  189.608572] PID 3573 buffer has data for reading
+[  189.608572] Mutex unlocked
+[  189.608573] PID 3573 buffer is able for writing
+[  190.964005] Device was closed by PID 3573
+[  190.964011] PID was unregistered

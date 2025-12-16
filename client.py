@@ -10,7 +10,7 @@ bufN = 256
 headSize = struct.calcsize('ii')
 intSize = struct.calcsize('i')
 pid = os.getpid()
-print("Server was started with pid", pid)
+print("Client was started with pid", pid)
 # номера команд в протоколе сообщений
 INIT = int(10)
 # инициализация, когда процесс хочет
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # init
     out_msg = pack_msg([INIT, 0], " ")
     in_msg = io_func(func, out_msg)
-    if in_msg[0] == INIT_STATUS:
+    if in_msg and in_msg[0] == INIT_STATUS:
         format = f'{calcISize(in_msg[2])}i'
         pids_tmp = struct.unpack(format, in_msg[2])
         print("pids_tmp", pids_tmp)
@@ -124,7 +124,7 @@ if __name__ == "__main__":
             out_msg = pack_msg([SEND, cur_pid], key)
             in_msg = io_func(func, out_msg)
             new_val = "?"
-            if in_msg[0] == SEND:
+            if in_msg and in_msg[0] == SEND:
                 new_val = in_msg[2].decode('UTF-8')
             else:
                 print("Unknown answer for SEND")
