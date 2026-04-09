@@ -3,6 +3,7 @@
 
 #include <linux/kernel.h>
 #include <linux/mutex.h>
+#include <linux/wait.h>
 
 // номера команд в протоколе сообщений
 #define INIT 10
@@ -23,6 +24,9 @@
 // заполнится и 16 сообщений будут висеть до момента
 // отмены регистрации этого процесса
 
+#define MAXMSGSIZE 4096
+// максимальный размер одного сообщения в байтах
+
 // TODO в протоколе init ввести тип процесса и сразу
 // отвергать запись в буфер для нечитающих процессов
 
@@ -39,6 +43,8 @@
 
 // статус завершения процедур
 enum {
+  INVALID = -3,
+  NOT_FOUND = -2,
   ERROR = -1,
   SUCCESS = 0,
   FULL = 1,
@@ -65,8 +71,12 @@ struct messages_list {
 // Структура для работы с сообщением
 struct pid_msg {
   struct mutex lock;
+  wait_queue_head_t read_queue;
+  MSG_THEAD pid;
   struct messages_list *head;
+  struct messages_list *tail;
   size_t nmsgs;
+  unsigned int users;
 };
 
 // Инициализация списка процессов
@@ -83,12 +93,12 @@ int pid_register(int pid);
 void pid_unregister(int pid);
 // Получение структуры  со списком сообщений для конкретного процесса
 struct pid_msg *get_pid_msg_list(int pid);
-// отдает сообщение из хвоста списка (самое старое)
-struct message *get_tail_msg(struct messages_list *head);
-// очищает сообщение из хвоста списка
-int clean_tail_msg(struct messages_list **head);
+// удаляет первое сообщение из очереди. Вызывать при удержанном pid_msg.lock
+void msg_drop_head(struct pid_msg *pidp);
 // алоцирует память для нового сообщения
 int msg_alloc(struct message **msg, size_t length);
+// освобождает сообщение
+void msg_free(struct message *msg);
 // сопоставляет сообщение и обработчик данного сообщения
 int msg_matching(struct message *msg, int pid);
 

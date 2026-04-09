@@ -1,0 +1,64 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python protocol tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run unit tests
+        run: make test
+
+  kernel-build:
+    name: Kernel module build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential linux-headers-generic
+
+      - name: Locate kernel headers
+        id: headers
+        shell: bash
+        run: |
+          kernel_dir="$(find /usr/src -maxdepth 1 -type d -name 'linux-headers-*-generic' | sort -V | tail -n 1)"
+          if [[ -z "$kernel_dir" ]]; then
+            echo "::error::No generic kernel headers found"
+            exit 1
+          fi
+          echo "kernel_dir=$kernel_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Build module with strict warnings
+        run: make KERNELDIR="${{ steps.headers.outputs.kernel_dir }}" W=1
+
+      - name: Upload module artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipcdev-ko-${{ github.sha }}
+          path: ipcdev.ko
+          if-no-files-found: error
+          retention-days: 14

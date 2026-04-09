@@ -3,20 +3,26 @@
 
 #include <linux/cdev.h>
 #include <linux/device.h>
+#include <linux/err.h>
 #include <linux/init.h>
 #include <linux/irq.h>
 #include <linux/module.h>
 #include <linux/poll.h>
 #include <linux/sched.h>
+#include <linux/uaccess.h>
+#include <linux/version.h>
 
 static int major;
 static struct class *cls;
+static struct device *dev;
 
-static struct file_operations ipc_fops = {.read = ipc_read,
-                                          .write = ipc_write,
-                                          .open = ipc_open,
-                                          .release = ipc_release,
-                                          .poll = ipc_poll};
+static const struct file_operations ipc_fops = {.owner = THIS_MODULE,
+                                                .read = ipc_read,
+                                                .write = ipc_write,
+                                                .open = ipc_open,
+                                                .release = ipc_release,
+                                                .poll = ipc_poll,
+                                                .llseek = noop_llseek};
 
 /*
  Инициализация, создание устройства, регистрация, инициализация списка для
@@ -24,16 +30,35 @@ static struct file_operations ipc_fops = {.read = ipc_read,
  регистрацией процесса)
 */
 int __init ipc_init(void) {
+  int err;
+
   pids_init();
-  pr_info("Pids buffer was initilized");
+  pr_info("Pids buffer was initialized\n");
   major = register_chrdev(0, DEVICE_NAME, &ipc_fops);
   if (major < 0) {
     pr_alert("Registering char device failed with %d\n", major);
     return major;
   }
   pr_info("%s was assigned major number %d.\n", DEVICE_NAME, major);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+  cls = class_create(DEVICE_NAME);
+#else
   cls = class_create(THIS_MODULE, DEVICE_NAME);
-  device_create(cls, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
+#endif
+  if (IS_ERR(cls)) {
+    err = PTR_ERR(cls);
+    unregister_chrdev(major, DEVICE_NAME);
+    return err;
+  }
+
+  dev = device_create(cls, NULL, MKDEV(major, 0), NULL, DEVICE_NAME);
+  if (IS_ERR(dev)) {
+    err = PTR_ERR(dev);
+    class_destroy(cls);
+    unregister_chrdev(major, DEVICE_NAME);
+    return err;
+  }
+
   pr_info("Device created on /dev/%s\n", DEVICE_NAME);
   return SUCCESS;
 }
@@ -44,9 +69,11 @@ int __init ipc_init(void) {
 */
 void __exit ipc_exit(void) {
   pids_uninit();
-  pr_info("Pids buffer was uninitilized");
-  device_destroy(cls, MKDEV(major, 0));
-  class_destroy(cls);
+  pr_info("Pids buffer was uninitialized\n");
+  if (!IS_ERR_OR_NULL(dev))
+    device_destroy(cls, MKDEV(major, 0));
+  if (!IS_ERR_OR_NULL(cls))
+    class_destroy(cls);
   unregister_chrdev(major, DEVICE_NAME);
   pr_info("Device was removed from /dev/%s\n", DEVICE_NAME);
 }
@@ -61,24 +88,20 @@ int ipc_open(struct inode *inode, struct file *filp) {
   struct pid_msg *pidp;
   int err;
 
-  pr_info("Device was opened by PID %d", pid);
-
-  err = pids_full();
-  if (err)
-    return -EAGAIN;
-
   err = pid_register(pid);
-  if (err)
+  if (err == FULL)
+    return -EAGAIN;
+  if (err != SUCCESS)
     return -EINVAL;
-  pr_info("PID was registered");
 
   pidp = get_pid_msg_list(pid);
-  if (!pidp)
+  if (!pidp) {
+    pid_unregister(pid);
     return -EINVAL;
+  }
 
   filp->private_data = pidp;
-  pr_info("PID msg list now in private data of file ");
-  try_module_get(THIS_MODULE);
+  pr_debug("Device was opened by PID %d\n", pid);
   return SUCCESS;
 }
 
@@ -87,12 +110,14 @@ int ipc_open(struct inode *inode, struct file *filp) {
   процесса. Пробудаются другие процессы, которые ожидают регистрации
 */
 int ipc_release(struct inode *inode, struct file *filp) {
-  int pid = task_pid_nr(current);
-  pr_info("Device was closed by PID %d", pid);
-  pid_unregister(pid);
-  pr_info("PID was unregistered");
-  module_put(THIS_MODULE);
-  pr_info("PID %d closed device file", pid);
+  struct pid_msg *pidp = filp->private_data;
+
+  if (pidp) {
+    pr_debug("Device was closed by PID %d\n", pidp->pid);
+    pid_unregister(pidp->pid);
+    filp->private_data = NULL;
+  }
+
   return SUCCESS;
 }
 
@@ -105,30 +130,42 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
                  loff_t *offset) {
 
   struct message *msg;
-  int nbytes = 0;
+  size_t nbytes;
   struct pid_msg *pidp = filp->private_data;
-  pr_info("PID pointer read device file");
-  if (mutex_lock_interruptible(&pidp->lock))
-    return -ERESTARTSYS;
-  pr_info("Mutex locked");
-  msg = get_tail_msg(pidp->head);
-  if (!msg) {
-    pr_info("Nothing for reading");
+
+  if (!pidp)
+    return -EINVAL;
+
+  for (;;) {
+    if (mutex_lock_interruptible(&pidp->lock))
+      return -ERESTARTSYS;
+
+    msg = pidp->head ? pidp->head->msg : NULL;
+    if (msg)
+      break;
+
     mutex_unlock(&pidp->lock);
-    return nbytes;
+    if (filp->f_flags & O_NONBLOCK)
+      return -EAGAIN;
+
+    if (wait_event_interruptible(pidp->read_queue,
+                                 READ_ONCE(pidp->head) != NULL))
+      return -ERESTARTSYS;
   }
-  pr_info("Message was founded");
-  nbytes = ((length < msg->length) ? length : msg->length);
+
+  if (length < msg->length) {
+    mutex_unlock(&pidp->lock);
+    return -EMSGSIZE;
+  }
+
+  nbytes = msg->length;
   if (copy_to_user(buffer, msg->data, nbytes)) {
     mutex_unlock(&pidp->lock);
     return -EFAULT;
   }
-  pr_info("%d bytes was readed", nbytes);
-  clean_tail_msg(&(pidp->head));
-  pidp->nmsgs--;
-  pr_info("Message was removed");
+
+  msg_drop_head(pidp);
   mutex_unlock(&pidp->lock);
-  pr_info("Mutex unlocked");
   return nbytes;
 }
 
@@ -140,29 +177,45 @@ ssize_t ipc_read(struct file *filp, char __user *buffer, size_t length,
 ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
                   loff_t *offset) {
   struct message *msg;
-  int nbytes = length;
   int pid = task_pid_nr(current);
-  pr_info("Write function was called by PID %d\n", pid);
   struct pid_msg *pidp = filp->private_data;
-  pr_info("PID pointer write device file");
-  if (msg_alloc(&msg, length) < 0)
+  int status;
+
+  if (!pidp)
+    return -EINVAL;
+
+  if (length < sizeof(struct msg_head))
+    return -EINVAL;
+
+  if (length > MAXMSGSIZE)
+    return -EMSGSIZE;
+
+  status = msg_alloc(&msg, length);
+  if (status == INVALID)
+    return -EINVAL;
+  if (status != SUCCESS)
     return -ENOMEM;
-  pr_info("Message allocated");
-  if (mutex_lock_interruptible(&pidp->lock))
-    return -ERESTARTSYS;
-  pr_info("Mutex locked");
+
   if (copy_from_user(msg->data, buffer, length)) {
-    mutex_unlock(&pidp->lock);
+    msg_free(msg);
     return -EFAULT;
   }
-  nbytes = length;
-  pr_info("Data was copied from user space to msg buffer, %d bytes", nbytes);
-  mutex_unlock(&pidp->lock);
-  pr_info("Mutex unlocked");
-  if (msg_matching(msg, pid))
-    return 0;
-  pr_info("MSG was filtered");
-  return nbytes;
+
+  status = msg_matching(msg, pid);
+  msg_free(msg);
+
+  switch (status) {
+  case SUCCESS:
+    return length;
+  case FULL:
+    return -EAGAIN;
+  case NOT_FOUND:
+    return -ESRCH;
+  case INVALID:
+    return -EINVAL;
+  default:
+    return -ENOMEM;
+  }
 }
 
 /*
@@ -171,23 +224,18 @@ ssize_t ipc_write(struct file *filp, const char __user *buffer, size_t length,
  */
 __poll_t ipc_poll(struct file *filp, struct poll_table_struct *poll_tbl) {
   __poll_t mask = (POLLOUT | POLLWRNORM);
-  int pid = task_pid_nr(current);
-  pr_info("Poll function was called by PID %d\n", pid);
   struct pid_msg *pidp = filp->private_data;
-  pr_info("PID pointer poll device file");
-  int ipid = pid_nfind(pid);
-  pr_info("iPID pointer poll device file %d", ipid);
-  if (ipid < 0)
-    return 0;
+
+  if (!pidp)
+    return POLLERR;
+
+  poll_wait(filp, &pidp->read_queue, poll_tbl);
+
   mutex_lock(&pidp->lock);
-  pr_info("Mutex locked");
-  if (pidp->head != NULL) {
-    // there is data in pids buffer
-    mask = POLLIN | POLLRDNORM;
-    pr_info("PID %d buffer has data for reading", pid);
-  }
+  if (pidp->head != NULL)
+    mask |= POLLIN | POLLRDNORM;
   mutex_unlock(&pidp->lock);
-  pr_info("Mutex unlocked");
+
   return mask;
 }
 
@@ -195,3 +243,4 @@ module_init(ipc_init);
 module_exit(ipc_exit);
 
 MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("Simple PID-addressed IPC character device");
